@@ -1,0 +1,5 @@
+# 이 폴더는 대시보드_결과\배포용\ 이면서 동시에 GitHub 저장소입니다.
+# git에는 index.html / version.json / README.md / .gitignore 만 올라갑니다.
+# 매달 파이프라인이 만드는 "(YY년M월)손익현황_배포용.html"은 로컬 원본일 뿐이므로 제외합니다.
+*.html
+!index.html
