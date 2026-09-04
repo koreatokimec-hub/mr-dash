@@ -4240,8 +4240,8 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
 .rag-kpi b{display:block;margin-top:6px;color:var(--ink);font-size:19px;font-weight:850}
 .rag-section-title{margin:20px 0 10px;color:var(--ink);font-size:14px;font-weight:850}
 .rag-choice-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-.rag-choice{border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--ink2);padding:10px 8px;font:800 11px var(--font);cursor:pointer}
-.rag-choice:hover{border-color:#7567c7;color:#7567c7;background:color-mix(in srgb,#7567c7 5%,var(--card))}
+.rag-choice,.rag-local-fallback{border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--ink2);padding:10px 8px;font:800 11px var(--font);cursor:pointer}
+.rag-choice:hover,.rag-local-fallback:hover{border-color:#7567c7;color:#7567c7;background:color-mix(in srgb,#7567c7 5%,var(--card))}
 .rag-clarify-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
 .rag-clarify{border:1px solid #7567c7;border-radius:999px;background:color-mix(in srgb,#7567c7 6%,var(--card));color:#6759b9;padding:7px 12px;font:800 11px var(--font);cursor:pointer}
 .rag-clarify:hover{background:#7567c7;color:#fff}
@@ -4250,7 +4250,7 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
 .rag-table th,.rag-table td{padding:11px 12px;border-bottom:1px solid var(--border);text-align:right}
 .rag-table th{position:sticky;top:0;background:var(--bg);color:var(--muted);font-weight:750}
 .rag-table th:first-child,.rag-table td:first-child{text-align:left}
-.rag-table td.l{text-align:left}
+.rag-table td.l{text-align:left}.rag-item-name{display:inline-block;max-width:230px;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
 .rag-table tr:last-child td{border-bottom:0}
 .rag-neg{color:#d44b54;font-weight:750}.rag-pos{color:#247a60;font-weight:750}.rag-amt{font-weight:750;color:#5b9bd5}
 .rag-total-row td{background:#f3f6fb;font-weight:850;border-bottom:2px solid var(--border)}
@@ -4345,8 +4345,9 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
   const RELAY_URL='https://mr-dash-relay-453758331438.asia-northeast3.run.app';
   async function callGemini(question,connectionOnly=false){
     const pass=apiKeyInput.value.trim();if(!pass)throw new Error('대시보드 암호를 입력해 주세요.');
-    const contextLine=(activeTeam||activeCustomer||activeItem)?`\n직전에 보고 있던 대상 - 팀: ${activeTeam||'없음'}, 거래처: ${activeCustomer||'없음'}, 품목: ${activeItem||'없음'}. 새 질문이 그 대상에 대한 후속 질문(예: "전월은?", "이익은?")이면 이 대상을 이어서 사용하라. 하지만 새 질문이 "제일/가장/~중/순위/상위/하위/비교" 등으로 여러 대상 중에서 찾거나 줄 세우는 질문이면, 이 대상에 얽매이지 말고 전체 대상을 기준으로 새로 판단하라.`:'';
-    const prior=pendingGemini?`\n진행 중인 원문: ${pendingGemini.question}\n이전에 파악한 명령: ${JSON.stringify(pendingGemini.command)}\n사용자의 추가 답변: ${question}\n추가 답변이 이전 명령의 세부사항(품목명, 지표, 기간 등)을 채우는 것이면 이전 명령에 병합하라. 하지만 추가 답변이 이전 명령과 다른 dimension/차원(팀↔판매구분↔거래처↔품목 등)을 스스로 명시하면, 이전 dimension은 버리고 추가 답변이 말하는 새 dimension을 그대로 따르라 — 이전 값과 억지로 합치지 마라.`:`\n사용자 질문: ${question}${contextLine}`;
+    // 토큰 절약: AI에게는 매 질문을 이전 대화와 무관한 1회성 질문으로만 보낸다.
+    // (직전 대상 참조·되묻기 답변 병합은 더 이상 AI 프롬프트에 실어 보내지 않는다)
+    const prior=`\n사용자 질문: ${question}`;
     const prompt=connectionOnly?'연결 확인용이다. dimension을 overall로 설정하고 나머지는 기본값으로 출력하라.':`
 너는 한국어 손익 대시보드의 질문 해석기다. 절대 숫자를 계산하거나 답을 지어내지 말고 실행할 JSON 명령만 만들어라.
 데이터 최신월은 ${M.months[latestIndex]}, 보유 기간은 ${M.months[0]}~${M.months[latestIndex]}이다. 기간을 특정하지 않았으면(연도·월 언급이 전혀 없으면) 기본이 "올해 누계"이므로 period_type=current를 사용하라 (current는 실행 시 자동으로 올해 누계로 처리된다).
@@ -4607,7 +4608,7 @@ ${prior}`;
     if(threshold)rows=rows.filter(row=>passes(Number(row[key])||0,threshold));
     const direction=command.sort!=='none'?command.sort:(command.negative_only&&key==='rate'?'asc':'desc');
     rows.sort((a,b)=>direction==='asc'?(Number(a[key])||0)-(Number(b[key])||0):(Number(b[key])||0)-(Number(a[key])||0));rows=rows.slice(0,Math.max(1,command.limit||10));
-    const body=rows.map((row,index)=>`<tr><td><b>${index+1}. ${esc(row.item)}</b></td><td class="rag-amt">${fmt(row.sales)}</td><td class="${row.profit<0?'rag-neg':'rag-pos'}">${fmt(row.profit)}</td><td class="${row.rate<0?'rag-neg':'rag-pos'}">${fmt(row.rate)}%</td></tr>`).join('');
+    const body=rows.map((row,index)=>`<tr><td><b class="rag-item-name" title="${esc(row.item)}">${index+1}. ${esc(row.item)}</b></td><td class="rag-amt">${fmt(row.sales)}</td><td class="${row.profit<0?'rag-neg':'rag-pos'}">${fmt(row.profit)}</td><td class="${row.rate<0?'rag-neg':'rag-pos'}">${fmt(row.rate)}%</td></tr>`).join('');
     answer.innerHTML=`<h3>문제판매 목록 내 판매품 ${esc(metricLabel(key))} ${direction==='asc'?'낮은 순':'높은 순'} <span class="rag-basis ${metricBasisClass(key)}">(${esc(period.label)})</span></h3><p class="rag-answer-summary">${esc(period.label)} 원본의 적자·10% 이하 등 문제판매 목록에서만 계산한 결과입니다. 전체 판매품 순위가 아닙니다.</p><div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>판매품</th><th>매출(억원)</th><th>이익액(억원)</th><th>이익률</th></tr></thead><tbody>${body||'<tr><td colspan="4">조건에 맞는 판매품 없음</td></tr>'}</tbody></table></div>${followups(['이번 달 적자 판매품','이번 달 이익률 10% 이하 판매품','판매구분별 이익률 비교'])}`;
   }
   let ownerRowsCache=null;
@@ -4637,7 +4638,7 @@ ${prior}`;
     if(!rows.length){answer.innerHTML=`<h3>${esc(original)}</h3><p class="rag-answer-summary">'${esc(requested)}' 이름으로 찾은 문제판매 이력이 없습니다.</p>`;return}
     rows=rows.slice().sort((a,b)=>a.month===b.month?a.profit-b.profit:b.month.localeCompare(a.month)).slice(0,50);
     const matchedOwners=[...new Set(rows.map(r=>r.owner))];
-    const body=rows.map((row,index)=>`<tr><td><b>${index+1}. ${esc(row.item)}</b></td><td class="l">${esc(row.vendor)}</td><td>${esc(row.month)}</td><td class="rag-amt">${fmt(row.sales)}</td><td class="${row.profit<0?'rag-neg':'rag-pos'}">${fmt(row.profit)}</td><td class="${row.rate<0?'rag-neg':'rag-pos'}">${fmt(row.rate)}%</td></tr>`).join('');
+    const body=rows.map((row,index)=>`<tr><td><b class="rag-item-name" title="${esc(row.item)}">${index+1}. ${esc(row.item)}</b></td><td class="l">${esc(row.vendor)}</td><td>${esc(row.month)}</td><td class="rag-amt">${fmt(row.sales)}</td><td class="${row.profit<0?'rag-neg':'rag-pos'}">${fmt(row.profit)}</td><td class="${row.rate<0?'rag-neg':'rag-pos'}">${fmt(row.rate)}%</td></tr>`).join('');
     answer.innerHTML=`<h3>${esc(matchedOwners.join(', '))} 문제판매 이력 <span class="rag-basis">(최근 날짜순, 최근 50건)</span></h3><p class="rag-answer-summary">전체 기간 적자·10% 이하 등 문제판매 목록에서 담당자로 찾은 결과입니다. 단위는 만원입니다.</p><div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>판매품</th><th>거래처</th><th>월</th><th>매출(만원)</th><th>손익(만원)</th><th>이익률</th></tr></thead><tbody>${body}</tbody></table></div>`;
   }
   function renderCustomers(command,original){
@@ -4723,31 +4724,20 @@ ${prior}`;
   function renderClarification(command,question){
     const options=(command.clarification_options||[]).filter(Boolean),buttons=options.map(option=>`<button type="button" class="rag-clarify" data-clarify="${esc(option)}">${esc(option)}</button>`).join('');
     answer.innerHTML=`<h3>조건을 확인해 주세요</h3><p class="rag-answer-summary">${esc(command.clarification||'어떤 기준으로 조회할까요?')}</p>${buttons?`<div class="rag-clarify-list">${buttons}</div>`:'<p class="rag-answer-summary">아래 입력창에 조건을 답해 주세요.</p>'}`;
-    pendingGemini={question,command};
-  }
-  function backfillCommand(prevCommand,nextCommand){
-    if(!prevCommand)return nextCommand;
-    const merged={...nextCommand},carry=['dimension','customer','item','team','teams','business_unit','category'];
-    carry.forEach(field=>{
-      const value=merged[field],isEmpty=value==null||value===''||value==='unknown'||value==='none'||(Array.isArray(value)&&value.length===0);
-      const prevValue=prevCommand[field],prevHas=prevValue!=null&&prevValue!==''&&prevValue!=='unknown'&&prevValue!=='none'&&!(Array.isArray(prevValue)&&prevValue.length===0);
-      if(isEmpty&&prevHas)merged[field]=prevValue;
-    });
-    return merged;
+    // 연결질문 비활성화: 답변을 이전 질문에 병합하지 않으므로 여기서 pendingGemini를 채우지 않는다.
+    // (버튼을 누르면 그 문구만으로 완전히 새 질문을 보낸다)
   }
   async function submitQuestion(text){
     text=String(text||'').trim();if(!text||geminiBusy)return;
     saveView();input.value='';const base=chatHtml,key=apiKeyInput.value.trim();
-    if(!pendingGemini){const ownerHit=matchOwner(text);if(ownerHit&&!matchTeam(text)){renderOwnerProblems({owner:ownerHit},text);finishTurn(base,text);return}}
-    if(!key){render(text);finishTurn(base,text);return}
+    const ownerHit=matchOwner(text);if(ownerHit&&!matchTeam(text)){renderOwnerProblems({owner:ownerHit},text);finishTurn(base,text);return}
+    if(!key){answer.innerHTML=`<h3>AI 연결이 필요합니다</h3><p class="rag-answer-summary">이 질문은 AI로 처리됩니다. 위 "연결 설정"에서 API 키를 입력한 뒤 다시 질문해 주세요.</p>`;apiPanel.classList.add('open');finishTurn(base,text);return}
     geminiBusy=true;sendButton.disabled=true;backButton.disabled=true;resetButton.disabled=true;const stopLoading=startLoading(base,text);
     try{
-      const wasPending=pendingGemini;let interpreted=await callGemini(text);geminiReady=true;setApiState('AI 연결됨 · 구조화된 질문 방식 · 키는 저장하지 않음','ok');
-      if(wasPending)interpreted=backfillCommand(wasPending.command,interpreted);
-      const original=wasPending?wasPending.question:text;
-      if(interpreted.needs_clarification)renderClarification(interpreted,original);else{pendingGemini=null;executeCommand(interpreted,original)}
+      const interpreted=await callGemini(text);geminiReady=true;setApiState('AI 연결됨 · 구조화된 질문 방식 · 키는 저장하지 않음','ok');
+      if(interpreted.needs_clarification)renderClarification(interpreted,text);else executeCommand(interpreted,text);
       finishTurn(base,text);
-    }catch(error){geminiReady=false;const message=friendlyError(error);setApiState(message,'bad');answer.innerHTML=`<h3>AI 질문 처리 실패</h3><p class="rag-answer-summary">${esc(message)}</p>${chips(['API 키·사용 한도·연결 확인'])}<button type="button" class="rag-choice rag-local-fallback">이 질문을 로컬 규칙으로 실행</button>`;finishTurn(base,text);
+    }catch(error){geminiReady=false;const message=friendlyError(error);setApiState(message,'bad');answer.innerHTML=`<h3>AI 질문 처리 실패</h3><p class="rag-answer-summary">${esc(message)}</p>${chips(['API 키·사용 한도·연결 확인'])}<button type="button" class="rag-local-fallback" data-fallback-q="${esc(text)}">이 질문을 로컬 규칙으로 실행</button>`;finishTurn(base,text);
     }finally{stopLoading();geminiBusy=false;sendButton.disabled=false;resetButton.disabled=false;updateBack()}
   }
   $('ragLaunch').onclick=()=>{panel.classList.add('open');if(!apiKeyInput.value.trim())apiPanel.classList.add('open');setTimeout(()=>apiKeyInput.value.trim()?input.focus():apiKeyInput.focus(),120)};$('ragClose').onclick=()=>panel.classList.remove('open');
@@ -4756,6 +4746,7 @@ ${prior}`;
   backButton.onclick=restorePrevious;resetButton.onclick=resetConversation;
   $('ragSend').onclick=()=>submitQuestion(input.value);input.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitQuestion(input.value)}});
   suggestions.addEventListener('click',event=>{const button=event.target.closest('button');if(!button)return;if(button.dataset.resolve){applyTarget(button.dataset.resolve);return}input.value=button.textContent;submitQuestion(input.value)});
+  answer.addEventListener('click',event=>{const button=event.target.closest('.rag-local-fallback');if(!button)return;event.preventDefault();event.stopPropagation();const q=button.dataset.fallbackQ||'';if(!q)return;const base=chatHtml;render(q);finishTurn(base,q)},true);
   answer.addEventListener('click',event=>{const button=event.target.closest('.rag-choice');if(!button)return;event.preventDefault();event.stopPropagation();applyTarget(button.dataset.target)},true);
   answer.addEventListener('click',event=>{const button=event.target.closest('.rag-clarify');if(!button)return;event.preventDefault();event.stopPropagation();const reply=button.dataset.clarify||button.textContent;input.value=reply;submitQuestion(reply)},true);
   answer.addEventListener('click',event=>{const button=event.target.closest('.rag-starter');if(!button)return;event.preventDefault();event.stopPropagation();submitQuestion(button.textContent)},true);
