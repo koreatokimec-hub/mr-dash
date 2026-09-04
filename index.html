@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">v1</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">v06</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -3706,6 +3706,7 @@ function openPresentation(card){
   if(button){button.setAttribute('aria-pressed','true');button.setAttribute('aria-label','발표 화면에서 복귀');button.title='발표 화면에서 복귀'}
   presentationPreviousOverflow=document.body.style.overflow;
   document.body.style.overflow='hidden';
+  document.body.classList.add('presentation-open');
   hideTip();
 }
 function closePresentation(){
@@ -3719,6 +3720,7 @@ function closePresentation(){
   const overlay=document.getElementById('presentationOverlay');
   overlay.classList.remove('on');overlay.setAttribute('aria-hidden','true');
   document.body.style.overflow=presentationPreviousOverflow;
+  document.body.classList.remove('presentation-open');
   hideTip();
 }
 function installPresentationButtons(){
@@ -4180,7 +4182,7 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
 (()=>{const show=()=>requestAnimationFrame(()=>document.documentElement.classList.remove('dashboard-loading'));if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',show);else show();setTimeout(()=>document.documentElement.classList.remove('dashboard-loading'),2000)})();
 </script>
 <style id="ui-rag-prototype-style">
-.rag-launch{position:fixed;right:22px;bottom:22px;z-index:420;border:0;border-radius:999px;background:linear-gradient(135deg,#245985,#7567c7);color:#fff;padding:16px 26px;font:700 16px var(--font);box-shadow:0 8px 24px rgba(36,89,133,.3);cursor:pointer;display:flex;align-items:center;gap:8px;transition:transform .15s ease}
+.rag-launch{position:fixed;right:22px;bottom:22px;z-index:420;border:0;border-radius:999px;background:linear-gradient(135deg,#245985,#7567c7);color:#fff;padding:16px 26px;font:700 16px var(--font);box-shadow:0 8px 24px rgba(36,89,133,.3);cursor:pointer;display:flex;align-items:center;gap:8px;transition:transform .15s ease}body.presentation-open .rag-launch{display:none}
 .rag-launch[hidden]{display:none!important}
 .rag-launch:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(36,89,133,.38)}
 .tkp-natural-drawer{position:fixed!important;z-index:99999!important;top:12px!important;right:8px!important;bottom:12px!important;left:auto!important;width:44vw!important;min-width:480px!important;max-width:760px!important;height:auto!important;margin:0!important;padding:0!important;box-sizing:border-box!important;display:flex!important;flex-direction:column!important;border:1px solid #d8e5f2!important;border-radius:18px!important;background:#fff!important;color:#17212b!important;box-shadow:0 20px 50px rgba(0,0,0,.22)!important;overflow:hidden!important;transform:translate3d(calc(100% + 40px),0,0)!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;transition:transform .4s cubic-bezier(.22,1,.36,1),opacity .4s ease,visibility 0s linear .4s!important}
@@ -4265,7 +4267,7 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
 @media(max-width:760px){.rag-launch{right:14px;bottom:14px}.tkp-natural-drawer{top:8px!important;right:8px!important;bottom:8px!important;left:auto!important;width:calc(100vw - 16px)!important;min-width:0!important;max-width:none!important;height:auto!important}.rag-start-grid{grid-template-columns:1fr}.rag-body{padding:15px}.rag-assistant-card{width:100%;padding:15px}.rag-user-pill{max-width:88%}.rag-kpis{grid-template-columns:1fr}.rag-hint{display:none}}
 </style>
 <!-- AX_챗봇: 평소엔 숨김. 왼쪽 하단 "v1" 표시를 2초 안에 7번 클릭하면 나타남(개발자 모드) -->
-<button class="rag-launch" id="ragLaunch" type="button" hidden>⌕ AX_챗봇</button>
+<button class="rag-launch" id="ragLaunch" type="button">⌕ AX_챗봇</button>
 <div class="tkp-natural-drawer" id="tkpNaturalDrawer" role="dialog" aria-label="손익 자연어 검색 패널" aria-modal="false">
   <div class="rag-head"><div class="rag-head-title"><i>⌕</i><div><b>AX_챗봇</b></div></div><button class="rag-toolbar-button" id="ragSettings" type="button">연결 설정</button><button class="rag-close" id="ragClose" type="button" aria-label="닫기">×</button></div>
   <div class="rag-body">
@@ -4283,21 +4285,6 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
      몰라도 되고, 매번 다시 입력할 필요도 없다. 배포용(암호화) 파일에서만
      window.TKP_DASH_PASS가 존재한다(build_dashboard.py의 gate() 참고). */
   if(typeof window.TKP_DASH_PASS==='string'&&window.TKP_DASH_PASS)apiKeyInput.value=window.TKP_DASH_PASS;
-  (function(){
-    const trigger=$('devModeTrigger'),launch=$('ragLaunch');
-    if(!trigger||!launch)return;
-    let count=0,timer=null;
-    trigger.addEventListener('click',()=>{
-      count++;
-      clearTimeout(timer);
-      timer=setTimeout(()=>{count=0},2000); /* 2초 안에 연달아 눌러야 인정 */
-      if(count>=7){
-        count=0;
-        launch.hidden=false;
-        trigger.textContent='v1 ✓';
-      }
-    });
-  })();
   const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const fmt=value=>(+value||0).toLocaleString('ko-KR',{minimumFractionDigits:1,maximumFractionDigits:2});
   const latestIndex=M.months.length-1;
