@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_a6</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_a7</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4247,6 +4247,10 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
 .rag-clarify-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
 .rag-clarify{border:1px solid #7567c7;border-radius:999px;background:color-mix(in srgb,#7567c7 6%,var(--card));color:#6759b9;padding:7px 12px;font:800 11px var(--font);cursor:pointer}
 .rag-clarify:hover{background:#7567c7;color:#fff}
+.rag-insight{margin-top:16px;padding:13px 15px;border:1px solid #dfe3f5;border-left:3px solid #7567c7;border-radius:10px;background:color-mix(in srgb,#7567c7 4%,var(--card))}
+.rag-insight-title{margin-bottom:6px;color:#6759b9;font-size:11.5px;font-weight:850;letter-spacing:.02em}
+.rag-insight p{margin:0;color:var(--ink2);font-size:13px;line-height:1.7}
+.rag-insight-loading{color:var(--muted);font-size:12px;font-weight:750}
 .rag-goto{display:inline-flex;align-items:center;gap:6px;margin-top:12px;border:1px solid #2f6fed;border-radius:999px;background:color-mix(in srgb,#2f6fed 8%,var(--card));color:#1a4fb0;padding:8px 15px;font:800 12px var(--font);cursor:pointer}
 .rag-goto:hover{background:#2f6fed;color:#fff}
 .rag-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:11px;background:var(--card);margin-bottom:8px}
@@ -4462,8 +4466,13 @@ ${prior}`;
     const yearlyRows=[...new Set(M.months.map(m=>m.slice(0,4)))].sort((a,b)=>b-a).map(y=>{const idx=lastMonthOfYear(y);return {...teamPoint(team,idx,'ytd'),period:y+'년 누계'}});
     html+=`<div class="rag-section-title">연도별 누계</div>${standardTable(yearlyRows)}`;
     html+=`<div class="rag-section-title">전체 기간 적자 월</div>${lossMonths.length?standardTable(lossMonths.slice(0,12)):'<p class="rag-answer-summary">적자 월이 없습니다.</p>'}`;
+    const teamSlot=insightSlot(1);
+    if(teamSlot)html+=teamSlot.html;
     html+=`<button type="button" class="rag-goto" data-goto="p2">팀별구분 탭에서 차트로 보기 ↗</button>`;
     answer.innerHTML=html;
+    if(teamSlot)fillInsight(teamSlot,`${team} 종합 자료 (${current.period} 기준)`,
+      `[이번 달]\n${insightPeriodRows([current])}\n\n[최근 12개월]\n${insightPeriodRows(latest12.slice().reverse())}`,
+      '팀 단위 합계 숫자다. 매출·영업이익 단위는 억원.');
   }
   function teamRows(plan){
     return Object.entries(M.teamSeries||{}).map(([name,series])=>{const sales=valueAt(series,'sales',plan.period),profit=valueAt(series,'profit',plan.period),rate=sales?profit/sales*100:0;let value={sales,profit,rate}[plan.metric],delta=null;
@@ -4491,6 +4500,63 @@ ${prior}`;
   function metricBasisClass(metric){return metric==='sales'?'rag-basis-blue':'rag-basis-green'}
   function followups(items){return `<div class="rag-section-title">이어서 확인할 수 있어요</div><div class="rag-clarify-list">${items.map(item=>{const obj=typeof item==='string'?{label:item,value:item}:item;return `<button type="button" class="rag-clarify" data-clarify="${esc(obj.value)}">${esc(obj.label)}</button>`}).join('')}</div>`}
   function gotoButton(view,label){return `<button type="button" class="rag-goto" data-goto="${view}">${esc(label)} ↗</button>`}
+
+  /* ===== AI 해설 =====================================================
+     표는 지금처럼 로컬에서 정확히 계산해 먼저 그리고, 그 숫자만 AI에 보내
+     2~3문장 해설을 덧붙인다. AI는 표에 있는 값만 인용하도록 프롬프트에서 막는다.
+
+     INSIGHT_LEVEL
+       1 = 팀·판매구분·회사전체 합계 숫자만 외부로 보낸다 (거래처·품목 이름 제외)
+       2 = 거래처·품목·담당자 단위까지 보낸다 (코드는 준비돼 있고 값만 2로 바꾸면 켜짐)
+     ------------------------------------------------------------------ */
+  const INSIGHT_LEVEL=1;
+  let insightSeq=0;
+  const INSIGHT_LOADING='<span class="rag-insight-loading">AI 해설을 준비하는 중…</span>';
+  function insightSlot(level){
+    if(INSIGHT_LEVEL<level)return null;
+    const id='rag-insight-'+(++insightSeq);
+    return {id,html:`<div class="rag-insight" id="${id}">${INSIGHT_LOADING}</div>`};
+  }
+  async function callInsight(title,rows,note){
+    const pass=apiKeyInput.value.trim();if(!pass)throw new Error('키 없음');
+    const prompt=`아래는 손익 대시보드가 방금 계산해 화면에 표시한 숫자다.
+제목: ${title}
+${note?`설명: ${note}\n`:''}데이터:
+${rows}
+
+이 숫자만 근거로 2~3문장짜리 짧은 해설을 한국어로 써라.
+규칙:
+- 표에 없는 숫자를 새로 만들거나 직접 계산하지 마라. 주어진 값만 인용하라.
+- 눈에 띄는 변화(급감·급증), 1위·꼴찌, 이상한 값이 있으면 짚어라.
+- 원인은 단정하지 말고 "~로 보인다" 정도로만 쓰라. 조언·추천은 하지 마라.
+- 인사말·머리말 없이 본문만 써라.`;
+    const response=await fetch(RELAY_URL,{method:'POST',headers:{'Content-Type':'application/json','X-Dash-Pass':pass},body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{thinkingConfig:{thinkingLevel:'low'}}})});
+    if(!response.ok)throw new Error('해설 요청 실패 ('+response.status+')');
+    const payload=await response.json().catch(()=>({}));
+    const text=payload?.candidates?.[0]?.content?.parts?.map(part=>part.text||'').join('').trim();
+    if(!text)throw new Error('해설 응답 없음');
+    return text;
+  }
+  async function fillInsight(slot,title,rows,note){
+    if(!slot)return;
+    const before=`<div class="rag-insight" id="${slot.id}">${INSIGHT_LOADING}</div>`;
+    const drop=()=>{const live=document.getElementById(slot.id);if(live)live.remove();chatHtml=chatHtml.split(before).join('')};
+    try{
+      const text=await callInsight(title,rows,note);
+      const filled=`<div class="rag-insight-title">AI 해설</div><p>${esc(text)}</p>`;
+      const live=document.getElementById(slot.id);if(live)live.innerHTML=filled;
+      /* 대화 기록에도 반영해야 뒤로가기·다음 질문 뒤에도 해설이 남는다 */
+      chatHtml=chatHtml.split(before).join(`<div class="rag-insight" id="${slot.id}">${filled}</div>`);
+    }catch(error){drop()}
+  }
+  /* 표 한 줄을 "이름 | 매출 | 영업이익 | 이익률" 형태의 짧은 텍스트로 만든다 */
+  function insightRows(rows,label='구분'){
+    return `${label} | 매출(억) | 영업이익(억) | 이익률(%)\n`+rows.map(row=>`${row.name} | ${fmt(row.sales)} | ${fmt(row.profit)} | ${fmt(row.rate)}`).join('\n');
+  }
+  function insightPeriodRows(rows){
+    return `기간 | 매출(억) | 영업이익(억) | 이익률(%)\n`+rows.map(row=>`${row.period} | ${fmt(row.sales)} | ${fmt(row.profit)} | ${fmt(row.rate)}`).join('\n');
+  }
+
   function yearViewFollowups(text,periodIndex){
     const curYear=M.months[periodIndex].slice(0,4);
     const years=[...new Set(M.months.map(m=>m.slice(0,4)))].filter(y=>y!==curYear).sort((a,b)=>b-a).slice(0,3);
@@ -4501,7 +4567,11 @@ ${prior}`;
     const i=plan.period.index,sales=valueAt({sales:M.sales.all,profit:M.profit.all},'sales',plan.period),profit=valueAt({sales:M.sales.all,profit:M.profit.all},'profit',plan.period),rate=sales?profit/sales*100:0;
     const point=index=>{const s=+M.sales.all[index]||0,p=+M.profit.all[index]||0;return {sales:s,profit:p,rate:s?p/s*100:0}},prev=i>0?point(i-1):null,yoy=i>=12?point(i-12):null;
     const monthSection=monthSectionHtml(yearMonthRows(M.sales.all,M.profit.all,plan.period),plan.period);
-    answer.innerHTML=`<h3>회사 전체 <span class="rag-basis ${metricBasisClass(plan.metric)}">${esc(metricLabel(plan.metric))}</span> <span class="rag-basis ${metricBasisClass(plan.metric)}">(${esc(plan.period.label)})</span></h3><p class="rag-answer-summary">${esc(plan.period.label)} 기준 회사 전체 손익 요약입니다.</p>${chips([plan.period.label,'회사 전체',metricLabel(plan.metric)])}<div class="rag-kpis"><div class="rag-kpi"><span>매출</span><b>${fmt(sales)}억</b></div><div class="rag-kpi"><span>영업이익</span><b class="${profit<0?'rag-neg':'rag-pos'}">${fmt(profit)}억</b></div><div class="rag-kpi"><span>이익률</span><b>${fmt(rate)}%</b></div></div><div class="rag-section-title">비교</div><div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>비교</th><th>매출 증감</th><th>영업이익 증감</th><th>이익률 차이</th></tr></thead><tbody><tr><td><b>전월 대비</b></td>${changeCell(prev?change(sales,prev.sales):null)}${changeCell(prev?change(profit,prev.profit):null)}${changeCell(prev?change(rate,prev.rate,true):null,'%p')}</tr><tr><td><b>전년 동월 대비</b></td>${changeCell(yoy?change(sales,yoy.sales):null)}${changeCell(yoy?change(profit,yoy.profit):null)}${changeCell(yoy?change(rate,yoy.rate,true):null,'%p')}</tr></tbody></table></div>${monthSection}${gotoButton('p1','전체 탭에서 보기')}`;
+    const overallSlot=insightSlot(1);
+    answer.innerHTML=`<h3>회사 전체 <span class="rag-basis ${metricBasisClass(plan.metric)}">${esc(metricLabel(plan.metric))}</span> <span class="rag-basis ${metricBasisClass(plan.metric)}">(${esc(plan.period.label)})</span></h3><p class="rag-answer-summary">${esc(plan.period.label)} 기준 회사 전체 손익 요약입니다.</p>${chips([plan.period.label,'회사 전체',metricLabel(plan.metric)])}<div class="rag-kpis"><div class="rag-kpi"><span>매출</span><b>${fmt(sales)}억</b></div><div class="rag-kpi"><span>영업이익</span><b class="${profit<0?'rag-neg':'rag-pos'}">${fmt(profit)}억</b></div><div class="rag-kpi"><span>이익률</span><b>${fmt(rate)}%</b></div></div><div class="rag-section-title">비교</div><div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>비교</th><th>매출 증감</th><th>영업이익 증감</th><th>이익률 차이</th></tr></thead><tbody><tr><td><b>전월 대비</b></td>${changeCell(prev?change(sales,prev.sales):null)}${changeCell(prev?change(profit,prev.profit):null)}${changeCell(prev?change(rate,prev.rate,true):null,'%p')}</tr><tr><td><b>전년 동월 대비</b></td>${changeCell(yoy?change(sales,yoy.sales):null)}${changeCell(yoy?change(profit,yoy.profit):null)}${changeCell(yoy?change(rate,yoy.rate,true):null,'%p')}</tr></tbody></table></div>${monthSection}${overallSlot?overallSlot.html:''}${gotoButton('p1','전체 탭에서 보기')}`;
+    if(overallSlot)fillInsight(overallSlot,`회사 전체 손익 (${plan.period.label})`,
+      insightPeriodRows([{period:plan.period.label,sales,profit,rate},...(prev?[{period:'직전 달',sales:prev.sales,profit:prev.profit,rate:prev.rate}]:[]),...(yoy?[{period:'전년 동월',sales:yoy.sales,profit:yoy.profit,rate:yoy.rate}]:[])]),
+      '회사 전체 합계 숫자다. 매출·영업이익 단위는 억원.');
   }
   function requestTarget(text){
     pendingText=text;const choices=[...(activeTeam?[activeTeam+' 월별']:[]),'전체 팀','상품','제품','상품·제품 전체','개별 품목'];
@@ -4546,7 +4616,9 @@ ${prior}`;
     const body=totalRowHtml+rows.map((row,index)=>`<tr><td><b>${index+1}. ${esc(row.name)}</b><br><small>${esc(row.group)}</small></td>${rowHtml(row)}${plan.comparison?`<td class="${(row.delta||0)<0?'rag-neg':'rag-pos'}">${row.delta==null?'-':fmt(row.delta)+(plan.metric==='rate'?'%p':'%')}</td>`:''}</tr>`).join('');
     const monthRows=categoryMonthRows(plan.categoryKey,plan.period);
     const monthSection=monthRows.length?`<div class="rag-section-title">${M.months[plan.period.index].slice(0,4)}년 월별 실적</div>${standardTable(monthRows.slice().reverse())}`:'';
-    answer.innerHTML=`<h3>${esc(text)} <span class="rag-basis ${metricBasisClass(plan.metric)}">(${esc(plan.period.label)} · 기준: ${esc(metric)})</span></h3><p class="rag-answer-summary">${esc(summary)}${totalRow?` 맨 위 행은 ${esc(plan.businessUnit)} 전체 합산입니다.`:''}</p>${chips([plan.period.label,plan.dimension==='team'?'팀별':'판매구분별',metric,plan.direction==='desc'?'높은 순':'낮은 순',compare,plan.negative?'적자만':''])}<div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>구분</th>${headCols}${deltaHead}</tr></thead><tbody>${body||`<tr><td colspan="${1+colOrder.length+(plan.comparison?1:0)}">${esc(empty)}</td></tr>`}</tbody></table></div>${monthSection}${followups(plan.dimension==='team'?yearViewFollowups(text,plan.period.index):['판매구분별 매출 비교','판매구분별 영업이익 비교','판매구분별 이익률 비교'])}${plan.dimension==='team'?gotoButton('p2','팀별구분 탭에서 보기'):gotoButton('p5','상세(제품·상품) 탭에서 보기')}`;
+    const rankSlot=insightSlot(1);
+    answer.innerHTML=`<h3>${esc(text)} <span class="rag-basis ${metricBasisClass(plan.metric)}">(${esc(plan.period.label)} · 기준: ${esc(metric)})</span></h3><p class="rag-answer-summary">${esc(summary)}${totalRow?` 맨 위 행은 ${esc(plan.businessUnit)} 전체 합산입니다.`:''}</p>${chips([plan.period.label,plan.dimension==='team'?'팀별':'판매구분별',metric,plan.direction==='desc'?'높은 순':'낮은 순',compare,plan.negative?'적자만':''])}<div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>구분</th>${headCols}${deltaHead}</tr></thead><tbody>${body||`<tr><td colspan="${1+colOrder.length+(plan.comparison?1:0)}">${esc(empty)}</td></tr>`}</tbody></table></div>${monthSection}${rankSlot?rankSlot.html:''}${followups(plan.dimension==='team'?yearViewFollowups(text,plan.period.index):['판매구분별 매출 비교','판매구분별 영업이익 비교','판매구분별 이익률 비교'])}${plan.dimension==='team'?gotoButton('p2','팀별구분 탭에서 보기'):gotoButton('p5','상세(제품·상품) 탭에서 보기')}`;
+    if(rankSlot&&rows.length)fillInsight(rankSlot,`${text} (${plan.period.label})`,insightRows(rows,plan.dimension==='team'?'팀':'판매구분'),`${plan.dimension==='team'?'팀':'판매구분'} 단위 합계 숫자다. 매출·영업이익 단위는 억원.`);
   }
   function commandPeriod(command){
     let index=latestIndex,scope=command.period_type==='month'?'month':'ytd';
@@ -4574,8 +4646,11 @@ ${prior}`;
     if(prev||yoy)html+=`<div class="rag-section-title">전월·전년 동월 비교</div><div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>비교</th><th>매출 증감</th><th>이익액 증감</th><th>이익률 차이</th></tr></thead><tbody><tr><td><b>전월 대비</b></td>${changeCell(prev?change(current.sales,prev.sales):null)}${changeCell(prev?change(current.profit,prev.profit):null)}${changeCell(prev?change(current.rate,prev.rate,true):null,'%p')}</tr><tr><td><b>전년 동월 대비</b></td>${changeCell(yoy?change(current.sales,yoy.sales):null)}${changeCell(yoy?change(current.profit,yoy.profit):null)}${changeCell(yoy?change(current.rate,yoy.rate,true):null,'%p')}</tr></tbody></table></div>`;
     html+=`<div class="rag-section-title">최근 12개월 이력</div>${standardTable(latest12.slice().reverse())}`;
     html+=`<div class="rag-section-title">전체 기간 적자 월</div>${lossMonths.length?standardTable(lossMonths.slice(0,12)):'<p class="rag-answer-summary">문제판매 목록 이력상 적자 월이 없습니다.</p>'}`;
+    const itemSlot=insightSlot(2);
+    if(itemSlot)html+=itemSlot.html;
     html+=`<button type="button" class="rag-goto" data-goto="p5">상세(제품·상품) 탭에서 보기 ↗</button>`;
     answer.innerHTML=html;
+    if(itemSlot)fillInsight(itemSlot,`${item} 손익 이력`,insightPeriodRows(latest12.slice().reverse()),'문제판매 목록에 있는 개별 품목의 월별 숫자다. 단위는 억원.');
   }
   function renderItems(command,original){
     const requestedItem=String(command.item||'').trim();
@@ -4601,7 +4676,9 @@ ${prior}`;
     const direction=command.sort!=='none'?command.sort:(command.negative_only&&key==='rate'?'asc':'desc');
     rows.sort((a,b)=>direction==='asc'?(Number(a[key])||0)-(Number(b[key])||0):(Number(b[key])||0)-(Number(a[key])||0));rows=rows.slice(0,Math.max(1,command.limit||10));
     const body=rows.map((row,index)=>`<tr><td><b class="rag-item-name" title="${esc(row.item)}">${index+1}. ${esc(row.item)}</b></td><td class="rag-amt">${fmt(row.sales)}</td><td class="${row.profit<0?'rag-neg':'rag-pos'}">${fmt(row.profit)}</td><td class="${row.rate<0?'rag-neg':'rag-pos'}">${fmt(row.rate)}%</td></tr>`).join('');
-    answer.innerHTML=`<h3>문제판매 목록 내 판매품 ${esc(metricLabel(key))} ${direction==='asc'?'낮은 순':'높은 순'} <span class="rag-basis ${metricBasisClass(key)}">(${esc(period.label)})</span></h3><p class="rag-answer-summary">${esc(period.label)} 원본의 적자·10% 이하 등 문제판매 목록에서만 계산한 결과입니다. 전체 판매품 순위가 아닙니다.</p><div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>판매품</th><th>매출(억원)</th><th>이익액(억원)</th><th>이익률</th></tr></thead><tbody>${body||'<tr><td colspan="4">조건에 맞는 판매품 없음</td></tr>'}</tbody></table></div>${followups(['이번 달 적자 판매품','이번 달 이익률 10% 이하 판매품','판매구분별 이익률 비교'])}${gotoButton('p5','상세(제품·상품) 탭에서 보기')}`;
+    const itemsSlot=insightSlot(2);
+    answer.innerHTML=`<h3>문제판매 목록 내 판매품 ${esc(metricLabel(key))} ${direction==='asc'?'낮은 순':'높은 순'} <span class="rag-basis ${metricBasisClass(key)}">(${esc(period.label)})</span></h3><p class="rag-answer-summary">${esc(period.label)} 원본의 적자·10% 이하 등 문제판매 목록에서만 계산한 결과입니다. 전체 판매품 순위가 아닙니다.</p><div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>판매품</th><th>매출(억원)</th><th>이익액(억원)</th><th>이익률</th></tr></thead><tbody>${body||'<tr><td colspan="4">조건에 맞는 판매품 없음</td></tr>'}</tbody></table></div>${itemsSlot?itemsSlot.html:''}${followups(['이번 달 적자 판매품','이번 달 이익률 10% 이하 판매품','판매구분별 이익률 비교'])}${gotoButton('p5','상세(제품·상품) 탭에서 보기')}`;
+    if(itemsSlot&&rows.length)fillInsight(itemsSlot,`문제판매품 ${metricLabel(key)} ${direction==='asc'?'낮은 순':'높은 순'} (${period.label})`,`품목 | 매출(억) | 이익액(억) | 이익률(%)\n`+rows.map(row=>`${row.item} | ${fmt(row.sales)} | ${fmt(row.profit)} | ${fmt(row.rate)}`).join('\n'),'적자·저마진 문제판매 목록에서만 뽑은 숫자다.');
   }
   let ownerRowsCache=null;
   function ownerProblemRows(){
@@ -4630,8 +4707,10 @@ ${prior}`;
     if(!rows.length){answer.innerHTML=`<h3>${esc(original)}</h3><p class="rag-answer-summary">'${esc(requested)}' 이름으로 찾은 문제판매 이력이 없습니다.</p>`;return}
     rows=rows.slice().sort((a,b)=>a.month===b.month?a.profit-b.profit:b.month.localeCompare(a.month)).slice(0,50);
     const matchedOwners=[...new Set(rows.map(r=>r.owner))];
+    const ownerSlot=insightSlot(2);
     const body=rows.map((row,index)=>`<tr><td><b class="rag-item-name" title="${esc(row.item)}">${index+1}. ${esc(row.item)}</b></td><td class="l">${esc(row.vendor)}</td><td>${esc(row.month)}</td><td class="rag-amt">${fmt(row.sales)}</td><td class="${row.profit<0?'rag-neg':'rag-pos'}">${fmt(row.profit)}</td><td class="${row.rate<0?'rag-neg':'rag-pos'}">${fmt(row.rate)}%</td></tr>`).join('');
-    answer.innerHTML=`<h3>${esc(matchedOwners.join(', '))} 문제판매 이력 <span class="rag-basis">(최근 날짜순, 최근 50건)</span></h3><p class="rag-answer-summary">전체 기간 적자·10% 이하 등 문제판매 목록에서 담당자로 찾은 결과입니다. 단위는 만원입니다.</p><div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>판매품</th><th>거래처</th><th>월</th><th>매출(만원)</th><th>손익(만원)</th><th>이익률</th></tr></thead><tbody>${body}</tbody></table></div>`;
+    answer.innerHTML=`<h3>${esc(matchedOwners.join(', '))} 문제판매 이력 <span class="rag-basis">(최근 날짜순, 최근 50건)</span></h3><p class="rag-answer-summary">전체 기간 적자·10% 이하 등 문제판매 목록에서 담당자로 찾은 결과입니다. 단위는 만원입니다.</p><div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>판매품</th><th>거래처</th><th>월</th><th>매출(만원)</th><th>손익(만원)</th><th>이익률</th></tr></thead><tbody>${body}</tbody></table></div>${ownerSlot?ownerSlot.html:''}`;
+    if(ownerSlot&&rows.length)fillInsight(ownerSlot,`${matchedOwners.join(', ')} 문제판매 이력`,`판매품 | 거래처 | 월 | 매출(만원) | 손익(만원) | 이익률(%)\n`+rows.slice(0,20).map(row=>`${row.item} | ${row.vendor} | ${row.month} | ${fmt(row.sales)} | ${fmt(row.profit)} | ${fmt(row.rate)}`).join('\n'),'담당자별 문제판매 이력이다. 단위는 만원. 최근 20건만 발췌했다.');
   }
   function renderCustomers(command,original){
     const history=M.customerHistory||{},period=commandPeriod(command),metric=command.metric==='unknown'?'rate':command.metric,threshold=commandThreshold(command),requested=String(command.customer||'').trim(),requestedNorm=norm(requested),originalNorm=norm(original),names=Object.keys(history),sortedByLength=names.slice().sort((a,b)=>b.length-a.length);
@@ -4652,7 +4731,9 @@ ${prior}`;
     const direction=command.sort==='asc'?'asc':'desc';rows.sort((a,b)=>direction==='asc'?a.value-b.value:b.value-a.value);if(!exact)rows=rows.slice(0,Math.max(1,command.limit||10));
     const body=rows.map((row,index)=>`<tr><td><b>${exact?'':index+1+'. '}${esc(row.name)}</b></td><td class="rag-amt">${fmt(row.sales)}</td><td class="${row.profit<0?'rag-neg':'rag-pos'}">${fmt(row.profit)}</td><td class="${row.rate<0?'rag-neg':'rag-pos'}">${fmt(row.rate)}%</td></tr>`).join('');
     const monthSection=exact?monthSectionHtml(yearMonthRows(history[exact].sales,history[exact].profit,period),period):'';
-    answer.innerHTML=`<h3>${exact?esc(exact)+' 손익 자료':'거래처별 '+esc(metricLabel(metric))+' '+(direction==='asc'?'낮은 순':'높은 순')} <span class="rag-basis ${metricBasisClass(metric)}">(${esc(period.label)})</span></h3><p class="rag-answer-summary">${esc(period.label)} 정식 거래처 이력에서 계산한 결과입니다.</p><div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>거래처</th><th>매출(억원)</th><th>영업이익(억원)</th><th>이익률</th></tr></thead><tbody>${body||'<tr><td colspan="4">조건에 맞는 거래처 없음</td></tr>'}</tbody></table></div>${monthSection}${gotoButton('p4','상세(거래처) 탭에서 보기')}`;
+    const custSlot=insightSlot(2);
+    answer.innerHTML=`<h3>${exact?esc(exact)+' 손익 자료':'거래처별 '+esc(metricLabel(metric))+' '+(direction==='asc'?'낮은 순':'높은 순')} <span class="rag-basis ${metricBasisClass(metric)}">(${esc(period.label)})</span></h3><p class="rag-answer-summary">${esc(period.label)} 정식 거래처 이력에서 계산한 결과입니다.</p><div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>거래처</th><th>매출(억원)</th><th>영업이익(억원)</th><th>이익률</th></tr></thead><tbody>${body||'<tr><td colspan="4">조건에 맞는 거래처 없음</td></tr>'}</tbody></table></div>${monthSection}${custSlot?custSlot.html:''}${gotoButton('p4','상세(거래처) 탭에서 보기')}`;
+    if(custSlot&&rows.length)fillInsight(custSlot,`${exact?exact+' 손익':'거래처별 '+metricLabel(metric)} (${period.label})`,insightRows(rows,'거래처'),'거래처 단위 합계 숫자다. 매출·영업이익 단위는 억원.');
   }
   function commandTeams(command,period){
     const exact=[];(command.teams||[]).forEach(value=>{const found=matchTeam(value);if(found&&!exact.includes(found))exact.push(found)});if(command.team){const found=matchTeam(command.team);if(found&&!exact.includes(found))exact.push(found)}
@@ -4676,7 +4757,9 @@ ${prior}`;
     const body=rows.map((row,index)=>`<tr><td><b>${index+1}. ${esc(row.name)}</b><br><small>${esc(row.group)}</small></td>${colOrder.map(k=>`<td class="${metricCols[k].cls(row)}">${metricCols[k].val(row)}</td>`).join('')}${refOffset?`<td class="${(row.delta||0)<0?'rag-neg':'rag-pos'}">${row.delta==null?'-':fmt(row.delta)+(metric==='rate'?'%p':'%')}</td>`:''}</tr>`).join('');
     const targetsFull=names.join('과 '),targetsShort=names.length<=3?targetsFull:`${names.length}개 팀`;
     const metricFollowups=['sales','profit','rate'].filter(k=>k!==metric).map(k=>({label:`${targetsShort} ${metricLabel(k)} 비교`,value:`${targetsFull} ${metricLabel(k)} 비교`}));
-    answer.innerHTML=`<h3>팀 <span class="rag-basis ${metricBasisClass(metric)}">${esc(metricLabel(metric))}</span> 비교 <span class="rag-basis ${metricBasisClass(metric)}">(${esc(period.label)})</span></h3><p class="rag-answer-summary">${esc(detail)}</p>${chips([period.label,`${rows.length}개 팀`,metricLabel(metric),compareLabel])}<div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>팀</th>${headCols}${refOffset?`<th>${compareLabel}</th>`:''}</tr></thead><tbody>${body}</tbody></table></div>${followups([...metricFollowups,...yearViewFollowups(original,period.index)])}${gotoButton('p2','팀별구분 탭에서 보기')}`;
+    const cmpSlot=insightSlot(1);
+    answer.innerHTML=`<h3>팀 <span class="rag-basis ${metricBasisClass(metric)}">${esc(metricLabel(metric))}</span> 비교 <span class="rag-basis ${metricBasisClass(metric)}">(${esc(period.label)})</span></h3><p class="rag-answer-summary">${esc(detail)}</p>${chips([period.label,`${rows.length}개 팀`,metricLabel(metric),compareLabel])}<div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>팀</th>${headCols}${refOffset?`<th>${compareLabel}</th>`:''}</tr></thead><tbody>${body}</tbody></table></div>${cmpSlot?cmpSlot.html:''}${followups([...metricFollowups,...yearViewFollowups(original,period.index)])}${gotoButton('p2','팀별구분 탭에서 보기')}`;
+    if(cmpSlot)fillInsight(cmpSlot,`팀 비교 (${period.label})`,insightRows(rows,'팀'),'팀 단위 합계 숫자다. 매출·영업이익 단위는 억원.');
   }
   function executeCommand(command,original){
     command=normalizeCommand(command,original);
@@ -4711,7 +4794,9 @@ ${prior}`;
     const categoryThresholdHint=(plan.dimension==='category'&&plan.threshold&&!rows.length)?' 참고로 이건 상품/제품/원자재 3개 판매구분을 통째로 합친 값입니다 — 개별 품목 기준으로 보시려면 "이번 달 이익률 10% 이하 판매품"처럼 "판매품"이라는 말을 넣어 질문해 주세요.':'';
     const monthRows=categoryMonthRows(plan.categoryKey,plan.period);
     const monthSection=monthRows.length?`<div class="rag-section-title">${M.months[plan.period.index].slice(0,4)}년 월별 실적</div>${standardTable(monthRows.slice().reverse())}`:'';
-    answer.innerHTML=`<h3>${esc(original)} <span class="rag-basis ${metricBasisClass(plan.metric)}">(${esc(period.label)} · 기준: ${esc(metric)})</span></h3><p class="rag-answer-summary">${(rows.length?`${period.label} 기준 계산 결과입니다.`:esc(empty))+esc(categoryThresholdHint)}${totalRow?` 맨 위 행은 ${esc(plan.businessUnit)} 전체 합산입니다.`:''}</p>${chips([period.label,plan.dimension==='category'?'판매구분별':'팀별',metric,plan.direction==='asc'?'낮은 순':'높은 순',compare])}<div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>구분</th>${headCols}${plan.comparison?`<th>${compare}</th>`:''}</tr></thead><tbody>${body||`<tr><td colspan="${1+colOrder.length+(plan.comparison?1:0)}">${esc(empty)}</td></tr>`}</tbody></table></div>${monthSection}${followups(plan.dimension==='team'?yearViewFollowups(original,plan.period.index):['판매구분별 매출 비교','판매구분별 영업이익 비교','판매구분별 이익률 비교'])}${plan.dimension==='team'?gotoButton('p2','팀별구분 탭에서 보기'):gotoButton('p5','상세(제품·상품) 탭에서 보기')}`;
+    const cmdRankSlot=insightSlot(1);
+    answer.innerHTML=`<h3>${esc(original)} <span class="rag-basis ${metricBasisClass(plan.metric)}">(${esc(period.label)} · 기준: ${esc(metric)})</span></h3><p class="rag-answer-summary">${(rows.length?`${period.label} 기준 계산 결과입니다.`:esc(empty))+esc(categoryThresholdHint)}${totalRow?` 맨 위 행은 ${esc(plan.businessUnit)} 전체 합산입니다.`:''}</p>${chips([period.label,plan.dimension==='category'?'판매구분별':'팀별',metric,plan.direction==='asc'?'낮은 순':'높은 순',compare])}<div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>구분</th>${headCols}${plan.comparison?`<th>${compare}</th>`:''}</tr></thead><tbody>${body||`<tr><td colspan="${1+colOrder.length+(plan.comparison?1:0)}">${esc(empty)}</td></tr>`}</tbody></table></div>${monthSection}${cmdRankSlot?cmdRankSlot.html:''}${followups(plan.dimension==='team'?yearViewFollowups(original,plan.period.index):['판매구분별 매출 비교','판매구분별 영업이익 비교','판매구분별 이익률 비교'])}${plan.dimension==='team'?gotoButton('p2','팀별구분 탭에서 보기'):gotoButton('p5','상세(제품·상품) 탭에서 보기')}`;
+    if(cmdRankSlot&&rows.length)fillInsight(cmdRankSlot,`${original} (${period.label})`,insightRows(rows,plan.dimension==='team'?'팀':'판매구분'),`${plan.dimension==='team'?'팀':'판매구분'} 단위 합계 숫자다. 매출·영업이익 단위는 억원.`);
   }
   function renderClarification(command,question){
     const options=(command.clarification_options||[]).filter(Boolean),buttons=options.map(option=>`<button type="button" class="rag-clarify" data-clarify="${esc(option)}">${esc(option)}</button>`).join('');
