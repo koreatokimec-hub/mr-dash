@@ -4506,10 +4506,11 @@ ${prior}`;
      2~3문장 해설을 덧붙인다. AI는 표에 있는 값만 인용하도록 프롬프트에서 막는다.
 
      INSIGHT_LEVEL
+       0 = 해설 안 붙임 (현재 설정 — 사용자 요청으로 꺼둠)
        1 = 팀·판매구분·회사전체 합계 숫자만 외부로 보낸다 (거래처·품목 이름 제외)
-       2 = 거래처·품목·담당자 단위까지 보낸다 (코드는 준비돼 있고 값만 2로 바꾸면 켜짐)
+       2 = 거래처·품목·담당자 단위까지 보낸다
      ------------------------------------------------------------------ */
-  const INSIGHT_LEVEL=1;
+  const INSIGHT_LEVEL=0;
   let insightSeq=0;
   const INSIGHT_LOADING='<span class="rag-insight-loading">AI 해설을 준비하는 중…</span>';
   function insightSlot(level){
