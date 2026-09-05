@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_c5</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_c6</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4909,7 +4909,19 @@ ${insightRules()}`;
     const monthSection=exact?monthSectionHtml(yearMonthRows(history[exact].sales,history[exact].profit,period),period):'';
     const custSlot=insightSlot(2);
     answer.innerHTML=`<h3>${exact?esc(exact)+' 손익 자료':'거래처별 '+esc(metricLabel(metric))+' '+(direction==='asc'?'낮은 순':'높은 순')} <span class="rag-basis ${metricBasisClass(metric)}">(${esc(period.label)})</span></h3><p class="rag-answer-summary">${esc(period.label)} 정식 거래처 이력에서 계산한 결과입니다.</p><div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>거래처</th><th>매출(억원)</th><th>영업이익(억원)</th><th>이익률</th></tr></thead><tbody>${body||'<tr><td colspan="4">조건에 맞는 거래처 없음</td></tr>'}</tbody></table></div>${monthSection}${custSlot?custSlot.html:''}${gotoButton('p4','상세(거래처) 탭에서 보기')}`;
-    if(custSlot&&rows.length)fillInsight(custSlot,`${exact?exact+' 손익':'거래처별 '+metricLabel(metric)} (${period.label})`,insightRows(rows,'거래처',period),'거래처 단위 합계 숫자다. 매출·영업이익 단위는 억원. 회사매출비중이 함께 붙어 있다(거래처는 월별 이력이 없어 증감기여도는 계산하지 않는다).');
+    if(custSlot&&rows.length){
+      if(exact){
+        /* 거래처 하나를 콕 집었을 때 총계 한 줄만 넘기면 AI가 평가할 재료가 없어 숫자만 되읊게 된다.
+           팀 상세와 같은 방식으로 최근 12개월 이력을 같이 넘겨 실제 평가가 나오게 한다. */
+        const series=history[exact],idx=period.index,latest12=[];
+        for(let i=Math.max(0,idx-11);i<=idx;i++){const s=+series.sales[i]||0,p=+series.profit[i]||0;latest12.push({period:M.months[i],sales:s,profit:p,rate:s?p/s*100:0})}
+        fillInsight(custSlot,`${exact} 손익 (${period.label})`,
+          `[이번 기간]\n${insightPeriodRows([{period:period.label,sales:rows[0].sales,profit:rows[0].profit,rate:rows[0].rate}])}\n\n[최근 12개월]\n${insightPeriodRows(latest12.slice().reverse())}`,
+          '특정 거래처 하나의 월별 이력이다. 단위는 억원.');
+      }else{
+        fillInsight(custSlot,`거래처별 ${metricLabel(metric)} (${period.label})`,insightRows(rows,'거래처',period),'거래처 단위 합계 숫자다. 매출·영업이익 단위는 억원. 회사매출비중이 함께 붙어 있다(거래처는 월별 이력이 없어 증감기여도는 계산하지 않는다).');
+      }
+    }
   }
   function commandTeams(command,period){
     const exact=[];(command.teams||[]).forEach(value=>{const found=matchTeam(value);if(found&&!exact.includes(found))exact.push(found)});if(command.team){const found=matchTeam(command.team);if(found&&!exact.includes(found))exact.push(found)}
