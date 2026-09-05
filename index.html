@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_c9</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_c10</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4569,8 +4569,11 @@ ${prior}`;
 - 이익률이 아니라 영업이익 금액 자체가 크게 늘거나 준 것도 따로 봐라. 이익률은 그대로인데 매출이 커져서
   영업이익 금액만 크게 늘어난 경우, 반대로 이익률은 비슷한데 매출이 줄어 영업이익 금액이 크게 준 경우는
   이익률만 봐서는 안 보이니 짚어라.
-- 매출동향/영업이익동향(대폭 증가/소폭 증가/유지 중/소폭 감소/대폭 감소)은 최근 1년 평균과 견줘
-  이미 판정해 둔 결과다. 그대로 인용하고, 표의 원래 숫자로 스스로 재계산하거나 재해석하지 마라.
+- 매출동향/영업이익동향(증가/감소/유지 중)은 최근 1년 평균과 견줘 이미 판정해 둔 방향이다.
+  이 방향을 결론으로 삼되, "'증가'라는 판정대로"처럼 라벨을 그대로 인용부호로 따오지 마라 —
+  자연스러운 문장 속에 녹여 써라(예: "~로 늘며", "~수준을 유지하며"). 강도(많이/조금)는 라벨에
+  없으니 지어내지 말고, 옆의 최근6개월매출추이를 보고 실제로 얼마나 뚜렷한 변화인지 판단해서
+  자연스럽게 표현하라 — 최근 몇 달이 이미 평평한데 "대폭 증가하는 기조"처럼 반대로 말하지 마라.
   전달(직전 달) 대비 숫자만 보고 "늘었다/줄었다"를 새로 판단하지 마라 — 마감이 다음 달로 밀리는
   일이 잦아 전달 대비 비교는 왜곡되기 쉽다.
 - 형식: "항목명 — 짚을 내용" 한 줄. 한 줄은 두 문장을 넘기지 마라.
@@ -4693,14 +4696,15 @@ ${insightRules()}`;
     return n?sum/n:null;
   }
   function trendLabel(current,avg){
+    /* 처음엔 대폭/소폭까지 5단계로 세분화했는데, 최근 몇 달은 평평한데 1년 전과 비교하면
+       "대폭 증가"가 나와 "안정적으로 유지되는 대폭 증가 기조" 같은 모순된 문장이 나왔다.
+       강도 구분 없이 방향(증가/감소/유지)만 판정한다 — 세기는 옆의 최근6개월매출추이를 보고
+       AI가 문장으로 자연스럽게 표현하게 둔다. */
     if(avg==null)return '-';
     if(!avg)return current?'증가':'유지 중';
     const diff=(current-avg)/Math.abs(avg)*100;
-    if(Math.abs(diff)<3)return '유지 중';
-    if(diff>=15)return '대폭 증가';
-    if(diff>0)return '소폭 증가';
-    if(diff<=-15)return '대폭 감소';
-    return '소폭 감소';
+    if(Math.abs(diff)<5)return '유지 중';
+    return diff>0?'증가':'감소';
   }
   function insightRows(rows,label='구분',period=null){
     /* 회사 전체 매출 대비 이 항목의 비중을 붙인다 — 팀·판매구분·거래처 어디든
