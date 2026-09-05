@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_b1</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_b2</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4312,7 +4312,8 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
     '이번 달 적자 판매품 이익률 낮은 순 10개','이번 달 적자 판매품 매출 낮은 순','이번 달 이익률 5% 이하 판매품','이번 달 적자 판매품 수','문제판매 목록 이익률 낮은 순','문제판매 목록 매출 높은 순','이번 달 적자 판매품 20개','이번 달 이익률 낮은 판매품 5개','이번 달 매출 낮은 적자 판매품','이번 달 이익액 낮은 적자 판매품',
     '전체 팀 올해 누계 이익률 비교','전체 팀 올해 누계 매출 비교','전체 팀 올해 누계 영업이익 비교','이번 달 회사 전체 영업이익','이번 달 회사 전체 매출','이번 달 회사 전체 이익률','올해 누계 회사 전체 매출','올해 누계 회사 전체 영업이익','지난달 회사 전체 이익률','작년 동월 대비 회사 전체 매출'
   ];
-  function startHtml(){const start=Math.floor(Math.random()*starterPool.length),questions=Array.from({length:8},(_,i)=>starterPool[(start+i)%starterPool.length]);return `<div class="rag-start"><h3>무엇을 확인할까요?</h3><p>검증된 예시 질문을 선택하거나 아래에 직접 입력하세요.</p><div class="rag-start-grid">${questions.map(q=>`<button class="rag-starter" type="button">${q}</button>`).join('')}</div></div>`}
+  const starterTop=['이번 달 영업이익 상위 5개 팀','전월보다 매출이 증가한 팀','이번 달 적자 팀 목록'];
+  function startHtml(){return `<div class="rag-start"><h3>무엇을 확인할까요?</h3><p>아래 예시를 누르거나 직접 입력하세요.</p><div class="rag-start-grid">${starterTop.map(q=>`<button class="rag-starter" type="button">${q}</button>`).join('')}</div></div>`}
   answer.innerHTML=startHtml();
   const norm=value=>String(value||'').toLowerCase().replace(/팀$/,'').replace(/[\s.&/()_-]/g,'');
   const chips=items=>`<div class="rag-conditions">${items.filter(Boolean).map(item=>`<span>${esc(item)}</span>`).join('')}</div>`;
@@ -4656,7 +4657,7 @@ ${insightRules()}`;
     if(plainMetric){renderOverall(text,plan);return}
     const known=/팀|판매구분|상품군|상품|제품|원자재|매출|영업이익|이익률|적자|손실|마이너스|전월|지난달|전년|작년|순위|상위|하위|감소|증가|줄어|떨어|늘어/.test(text);
     if(!known){
-      const candidates=closestTeams(text),label=candidates.length?'혹시 이 팀을 찾으셨나요?':'이렇게 질문해 보세요',examples=candidates.length?candidates:starterPool.slice(0,4);
+      const candidates=closestTeams(text),label=candidates.length?'혹시 이 팀을 찾으셨나요?':'이렇게 질문해 보세요',examples=candidates.length?candidates:starterTop;
       answer.innerHTML=`<h3>${esc(text)}</h3><p class="rag-answer-summary">질문의 대상이나 지표를 해석하지 못했습니다. 팀명과 함께 매출·영업이익·이익률 중 하나를 입력해 주세요.</p>${chips(['해석 실패','임의 결과를 표시하지 않음'])}<div class="rag-section-title">${esc(label)}</div>${suggestChips(examples)}`;return
     }
     if(plan.dimension==='team'){const bu=buFromText(text);if(bu)plan.businessUnit=bu}
