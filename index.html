@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_a7</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_a8</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4301,12 +4301,12 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
   let activeTeam=null,activeCustomer=null,activeItem=null,pendingText='';
   let geminiReady=false,geminiBusy=false,pendingGemini=null,viewHistory=[],loadingTimer=null,chatHtml='';
   const starterPool=[
-    '이번 달 매출 상위 5개 팀','이번 달 매출 상위 10개 팀','이번 달 영업이익 상위 5개 팀','이번 달 영업이익 상위 10개 팀','이번 달 이익률 상위 5개 팀','이번 달 이익률 상위 10개 팀','이번 달 매출 하위 5개 팀','이번 달 매출 하위 10개 팀','이번 달 영업이익 하위 5개 팀','이번 달 이익률 하위 5개 팀','이번 달 적자 팀 보여줘','이번 달 적자 팀 몇 개야','지난달 매출 상위 5개 팀','지난달 영업이익 상위 5개 팀','전월보다 매출이 감소한 팀','전월보다 매출이 증가한 팀','전월보다 영업이익이 증가한 팀','전월보다 영업이익이 감소한 팀','전월보다 이익률이 떨어진 팀','전월보다 이익률이 올라간 팀','전년 동월보다 매출이 늘어난 팀','전년 동월보다 매출이 줄어든 팀','전년 동월보다 영업이익이 증가한 팀','전년 동월보다 영업이익이 감소한 팀','이번 달 이익률 가장 낮은 팀','이번 달 이익률 가장 높은 팀','이번 달 매출 1위 팀','이번 달 영업이익 꼴찌 팀','이번 달 팀별 매출 전체 순위','이번 달 팀별 영업이익 전체 순위',
+    '이번 달 매출 상위 5개 팀','이번 달 매출 상위 10개 팀','이번 달 영업이익 상위 5개 팀','이번 달 영업이익 상위 10개 팀','이번 달 이익률 상위 5개 팀','이번 달 이익률 상위 10개 팀','이번 달 매출 하위 5개 팀','이번 달 매출 하위 10개 팀','이번 달 영업이익 하위 5개 팀','이번 달 이익률 하위 5개 팀','이번 달 적자 팀 목록','이번 달 적자 팀 수','지난달 매출 상위 5개 팀','지난달 영업이익 상위 5개 팀','전월보다 매출이 감소한 팀','전월보다 매출이 증가한 팀','전월보다 영업이익이 증가한 팀','전월보다 영업이익이 감소한 팀','전월보다 이익률이 떨어진 팀','전월보다 이익률이 올라간 팀','전년 동월보다 매출이 늘어난 팀','전년 동월보다 매출이 줄어든 팀','전년 동월보다 영업이익이 증가한 팀','전년 동월보다 영업이익이 감소한 팀','이번 달 이익률 가장 낮은 팀','이번 달 이익률 가장 높은 팀','이번 달 매출 1위 팀','이번 달 영업이익 최하위 팀','이번 달 팀별 매출 전체 순위','이번 달 팀별 영업이익 전체 순위',
     '영남사업팀과 공압사업팀 매출 비교','영남사업팀과 공압사업팀 영업이익 비교','영남사업팀과 공압사업팀 이익률 비교','공압사업팀과 산기시스템팀 이익률 비교','공압사업팀과 산기시스템팀 매출 비교','HPC 소속 팀 전체 영업이익 비교','HPC 소속 팀 전체 매출 비교','HPC 소속 팀 전체 이익률 비교','PMC 소속 팀 매출 비교','PMC 소속 팀 영업이익 비교','PMC 소속 팀 이익률 비교','기획/생산 소속 팀 매출 비교','기획/생산 소속 팀 영업이익 비교','전체 팀 이익률 비교','전체 팀 매출 비교',
     '이익률 10% 이하인 팀','이익률 10% 이상인 팀','이익률 20% 이상인 팀','영업이익 5억 이상인 팀','영업이익 1억 이하인 팀','매출 10억 이상인 팀','매출 5억 이하인 팀','이익률 5% 미만인 팀','영업이익 0 이하인 팀','매출 20억 초과인 팀','이번 달 적자 판매품 이익률 낮은 순 5개','이번 달 적자 판매품 5개','이번 달 이익률 10% 이하 판매품','이번 달 이익률 10% 이하 판매품 10개','이번 달 적자 판매품 매출 높은 순',
-    '판매구분별 매출 비교','판매구분별 영업이익 비교','판매구분별 이익률 비교','상품 매출 얼마야','제품 매출 얼마야','원자재 매출 얼마야','상품 영업이익 얼마야','제품 영업이익 얼마야','상품과 제품 이익률 비교','상품·제품·원자재 전체 실적 비교',
-    '거래처별 매출 상위 10개','거래처별 영업이익 상위 10개','거래처별 이익률 낮은 순 10개','적자 거래처 보여줘','이번 달 매출 상위 거래처 5개','이번 달 영업이익 상위 거래처 5개','거래처 매출 하위 10개','거래처별 이익률 10% 이하','이번 달 적자 거래처 5개','거래처별 매출 순위',
-    '이번 달 적자 판매품 이익률 낮은 순 10개','이번 달 적자 판매품 매출 낮은 순','이번 달 이익률 5% 이하 판매품','이번 달 적자 판매품 몇 개야','문제판매 목록 이익률 낮은 순','문제판매 목록 매출 높은 순','이번 달 적자 판매품 20개','이번 달 이익률 낮은 판매품 5개','이번 달 매출 낮은 적자 판매품','이번 달 이익액 낮은 적자 판매품',
+    '판매구분별 매출 비교','판매구분별 영업이익 비교','판매구분별 이익률 비교','상품 매출','제품 매출','원자재 매출','상품 영업이익','제품 영업이익','상품과 제품 이익률 비교','상품·제품·원자재 전체 실적 비교',
+    '거래처별 매출 상위 10개','거래처별 영업이익 상위 10개','거래처별 이익률 낮은 순 10개','적자 거래처 목록','이번 달 매출 상위 거래처 5개','이번 달 영업이익 상위 거래처 5개','거래처 매출 하위 10개','거래처별 이익률 10% 이하','이번 달 적자 거래처 5개','거래처별 매출 순위',
+    '이번 달 적자 판매품 이익률 낮은 순 10개','이번 달 적자 판매품 매출 낮은 순','이번 달 이익률 5% 이하 판매품','이번 달 적자 판매품 수','문제판매 목록 이익률 낮은 순','문제판매 목록 매출 높은 순','이번 달 적자 판매품 20개','이번 달 이익률 낮은 판매품 5개','이번 달 매출 낮은 적자 판매품','이번 달 이익액 낮은 적자 판매품',
     '전체 팀 올해 누계 이익률 비교','전체 팀 올해 누계 매출 비교','전체 팀 올해 누계 영업이익 비교','이번 달 회사 전체 영업이익','이번 달 회사 전체 매출','이번 달 회사 전체 이익률','올해 누계 회사 전체 매출','올해 누계 회사 전체 영업이익','지난달 회사 전체 이익률','작년 동월 대비 회사 전체 매출'
   ];
   function startHtml(){const start=Math.floor(Math.random()*starterPool.length),questions=Array.from({length:8},(_,i)=>starterPool[(start+i)%starterPool.length]);return `<div class="rag-start"><h3>무엇을 확인할까요?</h3><p>검증된 예시 질문을 선택하거나 아래에 직접 입력하세요.</p><div class="rag-start-grid">${questions.map(q=>`<button class="rag-starter" type="button">${q}</button>`).join('')}</div></div>`}
@@ -4350,7 +4350,8 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
 소속 정보: ${(M.teams||[]).map(row=>`${row[0]}=${row[1]}`).join(', ')}.
 dimension: overall(회사 전체), team(전체 팀 또는 특정 팀), category(판매구분 합계), item(개별 품목), customer(거래처), unknown.
 category: all, goods(상품), product(제품), other(원자재/기타), unknown.
-metric: sales(매출), profit(영업이익/이익액), rate(이익률), unknown. sort: asc, desc, none. comparison: none, mom, yoy. comparison_condition: none, increased, decreased. operation: list, summary, compare.
+metric: sales(매출), profit(영업이익/이익액), rate(이익률), unknown. sort: asc, desc, none. comparison: none, mom, yoy. comparison_condition: none, increased, decreased. operation: list, summary, compare, projection.
+‘올해/금년/연간/연말 예상 실적·매출·이익·이익률’처럼 아직 안 끝난 올해를 12개월로 환산한 전망을 물으면 dimension=overall, operation=projection으로 하라. 이건 현재까지의 월평균을 12개월로 늘린 추정치이며, 특정 팀이 아니라 회사 전체 기준으로만 계산한다.
 ‘판매구분/상품·제품·원자재 구분’은 category이고, ‘판매품/품목/개별 상품/개별 제품’은 item이다.
 ‘전월보다 감소/줄어듦/떨어짐’은 comparison=mom, comparison_condition=decreased이다. ‘전월보다 증가/늘어남’은 comparison=mom, comparison_condition=increased이다. 감소는 적자가 아니므로 negative_only로 설정하지 마라.
 ‘적자/손실/마이너스’는 영업이익이 0 미만이므로 metric=profit, negative_only=true이다.
@@ -4362,7 +4363,7 @@ metric: sales(매출), profit(영업이익/이익액), rate(이익률), unknown.
 특정 품목/제품 코드 하나를 콕 집어 물으면(예: "TCG30-03-FV-K 어때", "두산 GEAR SHIFT CYL 자료") dimension=item, item에 사용자가 입력한 품목명/코드를 그대로 넣어라. 이때도 개별 판매품은 문제판매 목록 이력만 있다는 점을 유지한다.
 사람 이름만 단독으로 나오거나(예: "조홍식", "조홍식 자료") "담당자/담당" 같은 말이 붙으면(예: "김민호 담당 판매 목록") dimension=owner, owner에 그 이름을 그대로 넣어라. 담당자 정보도 문제판매 목록에만 있다.
 ${prior}`;
-    const schema={type:'OBJECT',properties:{dimension:{type:'STRING',enum:['overall','team','category','item','customer','owner','unknown']},category:{type:'STRING',enum:['all','goods','product','other','unknown']},team:{type:'STRING'},teams:{type:'ARRAY',items:{type:'STRING'},maxItems:50},customer:{type:'STRING'},item:{type:'STRING'},owner:{type:'STRING'},business_unit:{type:'STRING',enum:['none','HPC','PMC','기획/생산']},period_type:{type:'STRING',enum:['current','month','ytd']},period_value:{type:'STRING'},metric:{type:'STRING',enum:['sales','profit','rate','unknown']},operation:{type:'STRING',enum:['list','summary','compare']},sort:{type:'STRING',enum:['asc','desc','none']},limit:{type:'INTEGER',minimum:1,maximum:100},comparison:{type:'STRING',enum:['none','mom','yoy']},comparison_condition:{type:'STRING',enum:['none','increased','decreased']},negative_only:{type:'BOOLEAN'},threshold_operator:{type:'STRING',enum:['none','gte','gt','lte','lt']},threshold_value:{type:'NUMBER'},needs_clarification:{type:'BOOLEAN'},clarification:{type:'STRING'},clarification_options:{type:'ARRAY',items:{type:'STRING'},maxItems:6},unsupported:{type:'BOOLEAN'},unsupported_reason:{type:'STRING'}},required:['dimension','category','team','teams','customer','item','owner','business_unit','period_type','period_value','metric','operation','sort','limit','comparison','comparison_condition','negative_only','threshold_operator','threshold_value','needs_clarification','clarification','clarification_options','unsupported','unsupported_reason']};
+    const schema={type:'OBJECT',properties:{dimension:{type:'STRING',enum:['overall','team','category','item','customer','owner','unknown']},category:{type:'STRING',enum:['all','goods','product','other','unknown']},team:{type:'STRING'},teams:{type:'ARRAY',items:{type:'STRING'},maxItems:50},customer:{type:'STRING'},item:{type:'STRING'},owner:{type:'STRING'},business_unit:{type:'STRING',enum:['none','HPC','PMC','기획/생산']},period_type:{type:'STRING',enum:['current','month','ytd']},period_value:{type:'STRING'},metric:{type:'STRING',enum:['sales','profit','rate','unknown']},operation:{type:'STRING',enum:['list','summary','compare','projection']},sort:{type:'STRING',enum:['asc','desc','none']},limit:{type:'INTEGER',minimum:1,maximum:100},comparison:{type:'STRING',enum:['none','mom','yoy']},comparison_condition:{type:'STRING',enum:['none','increased','decreased']},negative_only:{type:'BOOLEAN'},threshold_operator:{type:'STRING',enum:['none','gte','gt','lte','lt']},threshold_value:{type:'NUMBER'},needs_clarification:{type:'BOOLEAN'},clarification:{type:'STRING'},clarification_options:{type:'ARRAY',items:{type:'STRING'},maxItems:6},unsupported:{type:'BOOLEAN'},unsupported_reason:{type:'STRING'}},required:['dimension','category','team','teams','customer','item','owner','business_unit','period_type','period_value','metric','operation','sort','limit','comparison','comparison_condition','negative_only','threshold_operator','threshold_value','needs_clarification','clarification','clarification_options','unsupported','unsupported_reason']};
     const response=await fetch(RELAY_URL,{method:'POST',headers:{'Content-Type':'application/json','X-Dash-Pass':pass},body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json',responseSchema:schema,thinkingConfig:{thinkingLevel:'low'}}})});
     const bodyText=await response.text();let payload={};try{payload=JSON.parse(bodyText)}catch(e){}
     if(!response.ok){
@@ -4574,6 +4575,16 @@ ${rows}
       insightPeriodRows([{period:plan.period.label,sales,profit,rate},...(prev?[{period:'직전 달',sales:prev.sales,profit:prev.profit,rate:prev.rate}]:[]),...(yoy?[{period:'전년 동월',sales:yoy.sales,profit:yoy.profit,rate:yoy.rate}]:[])]),
       '회사 전체 합계 숫자다. 매출·영업이익 단위는 억원.');
   }
+  function renderProjection(text){
+    const idx=latestIndex,year=+M.months[idx].slice(0,4),month=+M.months[idx].slice(5,7);
+    const salesYtd=sumTo(M.sales.all,idx),profitYtd=sumTo(M.profit.all,idx),rateYtd=salesYtd?profitYtd/salesYtd*100:0;
+    const done=month>=12;
+    const salesProj=done?salesYtd:salesYtd/month*12,profitProj=done?profitYtd:profitYtd/month*12,rateProj=rateYtd; /* 매출·이익을 같은 배율로 늘리므로 이익률은 그대로다 */
+    const prevYearEnd=lastMonthOfYear(String(year-1)),prevYearSales=prevYearEnd!=null?sumTo(M.sales.all,prevYearEnd):null,prevYearProfit=prevYearEnd!=null?sumTo(M.profit.all,prevYearEnd):null,prevYearRate=prevYearSales?prevYearProfit/prevYearSales*100:null;
+    const summary=done?`${year}년 12월까지 실적이 모두 반영된 확정 실적입니다.`:`${year}년 1~${month}월 실적을 월평균으로 환산해 12개월로 늘린 값입니다 — 남은 달도 지금과 비슷한 흐름이라고 가정한 추정치이며, 확정 실적이 아닙니다.`;
+    const yoyRow=prevYearSales!=null?`<div class="rag-section-title">${year-1}년 전체 실적 대비</div><div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>비교</th><th>매출 증감</th><th>영업이익 증감</th><th>이익률 차이</th></tr></thead><tbody><tr><td>${year-1}년 전체 → ${year}년 예상</td>${changeCell(change(salesProj,prevYearSales))}${changeCell(change(profitProj,prevYearProfit))}${changeCell(change(rateProj,prevYearRate,true),'%p')}</tr></tbody></table></div>`:'';
+    answer.innerHTML=`<h3>${year}년 <span class="rag-basis rag-basis-blue">연간 예상 실적</span></h3><p class="rag-answer-summary">${esc(summary)}</p>${chips([`${year}년 1~${month}월 실적 기준`,done?'확정':'월평균 × 12 추정'])}<div class="rag-kpis"><div class="rag-kpi"><span>예상 매출</span><b>${fmt(salesProj)}억</b></div><div class="rag-kpi"><span>예상 영업이익</span><b class="${profitProj<0?'rag-neg':'rag-pos'}">${fmt(profitProj)}억</b></div><div class="rag-kpi"><span>예상 이익률</span><b>${fmt(rateProj)}%</b></div></div><div class="rag-section-title">계산 근거 (1~${month}월 실적)</div><div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>구분</th><th>매출(억원)</th><th>영업이익(억원)</th><th>이익률</th></tr></thead><tbody><tr><td>1~${month}월 누계</td><td class="rag-amt">${fmt(salesYtd)}</td><td class="${profitYtd<0?'rag-neg':'rag-pos'}">${fmt(profitYtd)}</td><td class="${rateYtd<0?'rag-neg':'rag-pos'}">${fmt(rateYtd)}%</td></tr><tr><td>월평균 (÷${month}개월)</td><td class="rag-amt">${fmt(salesYtd/month)}</td><td class="${profitYtd<0?'rag-neg':'rag-pos'}">${fmt(profitYtd/month)}</td><td class="${rateYtd<0?'rag-neg':'rag-pos'}">${fmt(rateYtd)}%</td></tr></tbody></table></div>${yoyRow}${followups(['이번 달 회사 전체 매출','올해 누계 회사 전체 매출',`${year-1}년 회사 전체 매출`])}${gotoButton('p6','연도별 실적비교 탭에서 보기')}`;
+  }
   function requestTarget(text){
     pendingText=text;const choices=[...(activeTeam?[activeTeam+' 월별']:[]),'전체 팀','상품','제품','상품·제품 전체','개별 품목'];
     suggestions.innerHTML=defaultSuggestions;
@@ -4584,6 +4595,7 @@ ${rows}
     if(!text.trim())return;text=String(text).replace(/영억이익|영역이익|영익이익/g,'영업이익').replace(/이익율/g,'이익률').replace(/(?<!\d)(\d{2})년/g,'20$1년');
     if(pendingText){const reply=text.trim(),isTarget=/^(?:전체\s*팀|팀|상품|제품|상품[·\s]*제품\s*전체|개별\s*품목|품목)$/.test(reply)||!!matchTeam(reply);if(isTarget){const original=pendingText;pendingText='';text=(original+' '+(reply==='팀'?'전체 팀':reply)).trim();input.value=text}}
     const namedTeam=matchTeam(text),threshold=parseThreshold(text),explicitTarget=/팀|상품|제품|원자재|품목|판매품|아이템|거래처/.test(text);
+    if(!namedTeam&&/예상/.test(text)&&/(올해|금년|연간|연말|이번\s*해|올\s*한\s*해)/.test(text)){renderProjection(text);return}
     if(!namedTeam&&!threshold){const ownerHit=matchOwner(text);if(ownerHit){renderOwnerProblems({owner:ownerHit},text);return}}
     if(threshold&&!namedTeam&&!explicitTarget){requestTarget(text);return}
     const plan=parseQuestion(text);
@@ -4768,7 +4780,17 @@ ${rows}
     if(command.dimension==='customer'){renderCustomers(command,original);return}
     if(command.dimension==='owner'){renderOwnerProblems(command,original);return}
     if(command.dimension==='item'){renderItems(command,original);return}
-    if(command.dimension==='team'&&command.operation==='compare'){renderTeamComparison(command,original);return}
+    if(command.dimension==='team'&&command.operation==='compare'){
+      const placeholders=new Set(['all','전체','전체팀','전체 팀','none','전사','회사전체','회사 전체','n/a','null','unknown']);
+      const named=[...(command.teams||[]),command.team]
+        .map(value=>String(value||'').trim())
+        .filter(value=>value&&!placeholders.has(value.toLowerCase()))
+        .map(value=>matchTeam(value)).filter(Boolean);
+      const wholeGroup=command.business_unit&&command.business_unit!=='none';
+      const asksCompare=/비교|대비해|나란히|같이\s*보/.test(original||'');
+      if(new Set(named).size>=2||wholeGroup||asksCompare){renderTeamComparison(command,original);return}
+      command.operation='list';
+    }
     const teamPlaceholders=new Set(['all','전체','전체팀','전체 팀','none','전사','회사전체','회사 전체','n/a','null','unknown']);
     if(teamPlaceholders.has(String(command.team||'').trim().toLowerCase()))command.team='';
     if(command.team&&command.dimension==='team'&&!matchTeam(command.team)){
@@ -4776,6 +4798,7 @@ ${rows}
       answer.innerHTML=`<h3>${esc(original)}</h3><p class="rag-answer-summary">'${esc(command.team)}' 팀을 찾지 못했습니다.${candidates.length?' 아래 중 하나였나요?':' 정확한 팀명으로 다시 질문해 주세요.'}</p>${candidates.length?suggestChips(candidates):''}`;return
     }
     const period=commandPeriod(command),threshold=commandThreshold(command),plan={period,dimension:command.dimension==='category'?'category':'team',categoryKey:command.category==='all'||command.category==='unknown'?null:command.category,metric:command.metric==='unknown'?'rate':command.metric,direction:command.sort==='asc'?'asc':'desc',directionExplicit:command.sort!=='none',limit:command.limit||10,comparison:command.comparison==='none'?null:command.comparison,comparisonCondition:command.comparison_condition||'none',negative:!!command.negative_only,threshold,team:command.team&&matchTeam(command.team)};
+    if(command.dimension==='overall'&&command.operation==='projection'){renderProjection(original);return}
     if(command.dimension==='overall'){renderOverall(original,plan);return}
     if(plan.team){renderTeam(original,plan);return}
     if(plan.dimension==='team'){const bu=buFromText(original);if(bu)plan.businessUnit=bu}
