@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_c7</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_c8</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4581,6 +4581,10 @@ ${prior}`;
   적어도(매출·영업이익이 억 단위로 거의 안 움직였는데도) 나눗셈 때문에 기여도가 수십~수백%로 부풀어
   보일 수 있다. 그런 경우는 특이점으로 짚지 마라 — 이 항목 자체의 매출·영업이익 변화가 실제로도
   뚜렷할 때만 기여도를 근거로 써라.
+- 증감기여도 뒤에 괄호로 붙은 "동행"/"역행"을 그대로 근거로 써라. "역행·이 항목만 증가"는 회사
+  전체는 줄었는데 이 항목만 늘었다는 뜻이니 이 항목은 깎아먹은 게 아니라 오히려 버텨준 쪽이다.
+  "역행·이 항목만 감소"는 회사 전체는 늘었는데 이 항목만 줄어 전체 성장의 발목을 잡았다는 뜻이다.
+  숫자의 부호만 보고 "회사 실적을 깎아먹었다"처럼 스스로 재해석하지 마라.
 - 형식: "항목명 — 짚을 내용" 한 줄. 한 줄은 두 문장을 넘기지 마라.
 - 숫자 변화만 옮겨 적지 마라. 근거 숫자 두 개 이상과 함께, 그게 왜 눈에 띄는지 해석을 반드시 붙여라.
   나쁜 예: "공압사업팀 — 영업이익이 0.4억에서 1.2억이 되었다." (숫자만 옮김. 표를 보면 아는 내용)
@@ -4731,7 +4735,13 @@ ${insightRules()}`;
   function contribOrDash(delta,companyDelta,prevValue){
     if(delta==null||!companyDelta)return '-';
     if(prevValue&&Math.abs(delta)/Math.abs(prevValue)<0.01)return '-';
-    return fmt(delta/companyDelta*100)+'%';
+    /* 기여도가 음수일 때 "이 항목이 회사 실적을 깎아먹었다"고 AI가 거꾸로 해석하는 경우가 있었다.
+       음수는 그냥 "회사 전체와 반대 방향으로 움직였다"는 뜻일 뿐이라 (늘었는데 전체는 줄어든 경우도
+       음수가 됨), 부호 해석을 AI에게 맡기지 않고 여기서 미리 판정해 문구로 같이 준다. */
+    const pct=delta/companyDelta*100;
+    const itemUp=delta>0,companyUp=companyDelta>0;
+    const relation=itemUp===companyUp?'동행':(itemUp?'역행·이 항목만 증가':'역행·이 항목만 감소');
+    return `${fmt(pct)}%(회사${companyUp?'증가':'감소'}·${relation})`;
   }
   function insightCompanyContext(sales,profit,prevSales,prevProfit,index,scope){
     /* 팀·거래처 하나를 콕 집었을 때도 "회사 전체에서 이 정도 비중이고, 이번 증감의 이 정도를
