@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_c10</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_d1</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4494,8 +4494,8 @@ ${prior}`;
     html+=`<button type="button" class="rag-goto" data-goto="p2">팀별구분 탭에서 차트로 보기 ↗</button>`;
     answer.innerHTML=html;
     if(teamSlot)fillInsight(teamSlot,`${team} 종합 자료 (${current.period} 기준)`,
-      `[이번 달]\n${insightPeriodRows([current])}\n\n[1년 평균 대비]\n${insightYearTrend(current,latest12)}\n\n[최근 12개월]\n${insightPeriodRows(latest12.slice().reverse())}`,
-      '팀 단위 합계 숫자다. 매출·영업이익 단위는 억원. [1년 평균 대비]는 최근 12개월 평균과 견줘 지금이 늘었는지 줄었는지 유지 중인지를 미리 판정해 둔 것이다.');
+      `[이번 달]\n${insightPeriodRows([current])}\n\n[1년 평균 대비]\n${insightYearTrend(current,latest12,index,'month',(()=>{const cs=valueAt({sales:M.sales.all,profit:M.profit.all},'sales',{index,scope:'month'});return cs?current.sales/cs*100:null})())}\n\n[최근 12개월]\n${insightPeriodRows(latest12.slice().reverse())}`,
+      '팀 단위 합계 숫자다. 매출·영업이익 단위는 억원. [1년 평균 대비]는 이 팀과 회사 전체 각각을 자기 최근 12개월 평균과 견줘 늘었는지 줄었는지 유지 중인지 미리 판정해 둔 것이다.');
   }
   function teamRows(plan){
     return Object.entries(M.teamSeries||{}).map(([name,series])=>{const sales=valueAt(series,'sales',plan.period),profit=valueAt(series,'profit',plan.period),rate=sales?profit/sales*100:0;let value={sales,profit,rate}[plan.metric],delta=null;
@@ -4576,10 +4576,17 @@ ${prior}`;
   자연스럽게 표현하라 — 최근 몇 달이 이미 평평한데 "대폭 증가하는 기조"처럼 반대로 말하지 마라.
   전달(직전 달) 대비 숫자만 보고 "늘었다/줄었다"를 새로 판단하지 마라 — 마감이 다음 달로 밀리는
   일이 잦아 전달 대비 비교는 왜곡되기 쉽다.
+- "회사 전체 동향"도 같이 주어진다. 이걸 별도 항목으로 따로 쓰지 말고, 각 줄의 평가 안에 자연스럽게
+  녹여라. 회사 전체와 방향이 같은지 다른지가 그 항목을 평가하는 배경이 된다 — 예: "회사 전체가
+  빠지는 흐름 속에서도 이 팀은 오히려 늘고 있다", "회사 전체가 좋아지는 국면인데 이 팀만 뒷걸음쳤다",
+  "회사 흐름과 같이 움직이는 정도라 이 팀만의 특이 요인은 크지 않아 보인다".
+  회사 대비 몇 %를 기여했다는 식의 계산값은 쓰지 마라 — 그런 수치는 주어지지도 않는다.
 - 형식: "항목명 — 짚을 내용" 한 줄. 한 줄은 두 문장을 넘기지 마라.
-- 숫자 변화만 옮겨 적지 마라. 근거 숫자 두 개 이상과 함께, 그게 왜 눈에 띄는지 해석을 반드시 붙여라.
-  나쁜 예: "공압사업팀 — 영업이익이 0.4억에서 1.2억이 되었다." (숫자만 옮김. 표를 보면 아는 내용)
-  좋은 예: "공압사업팀 — 매출은 9.4억에서 9.1억으로 줄었는데 영업이익은 0.4억에서 1.2억으로 늘어, 최근 6개월 평균 이익률(5.0%)의 2배를 넘는 수익성 개선이 있었던 것으로 보인다."
+- 숫자를 나열하지 마라. "A억에서 B억으로 늘었다"처럼 값을 옮겨 적는 건 표를 보면 아는 내용이라
+  쓸모가 없다. 판단을 뒷받침하는 데 꼭 필요한 숫자만 한 줄에 한두 개 정도 곁들이고, 나머지는
+  흐름과 상태를 말로 풀어라.
+  나쁜 예: "공압사업팀 — 매출이 9.4억에서 9.1억으로 줄고 영업이익은 0.4억에서 1.2억으로 늘었다."
+  좋은 예: "공압사업팀 — 매출은 제자리인데 영업이익만 3배 가까이 뛰어(1.2억), 회사 전체가 정체된 국면에서 수익성이 두드러지게 개선된 것으로 보인다."
 - 표에 있는 값만 쓰라. 없는 값을 만들거나 추정하지 마라. (표의 값끼리 빼거나 나누는 것은 허용한다)
 - '-'로 표시된 칸은 자료가 없다는 뜻이다. 그 칸을 근거로 삼지 마라.
 - 원인은 단정하지 말고 "~로 보인다" 정도로만. 조언·추천·전체 요약·인사말은 쓰지 마라.
@@ -4700,11 +4707,29 @@ ${insightRules()}`;
        "대폭 증가"가 나와 "안정적으로 유지되는 대폭 증가 기조" 같은 모순된 문장이 나왔다.
        강도 구분 없이 방향(증가/감소/유지)만 판정한다 — 세기는 옆의 최근6개월매출추이를 보고
        AI가 문장으로 자연스럽게 표현하게 둔다. */
-    if(avg==null)return '-';
+    if(avg==null||current==null)return '-';
     if(!avg)return current?'증가':'유지 중';
     const diff=(current-avg)/Math.abs(avg)*100;
     if(Math.abs(diff)<5)return '유지 중';
     return diff>0?'증가':'감소';
+  }
+  function monthlyEquivalent(value,index,scope){
+    /* 기간을 안 밝히고 물으면 기본이 "올해 누계"라 값이 몇 달치 합계로 들어온다.
+       그걸 월평균과 그대로 비교하면 무조건 "증가"가 나오므로, 누계는 개월 수로 나눠
+       월 단위로 환산한 뒤 비교한다. */
+    if(value==null)return null;
+    if(scope!=='ytd')return value;
+    const month=+String(M.months[index]||'').slice(5,7)||1;
+    return value/month;
+  }
+  function companyTrendLine(index,scope){
+    /* 이 항목만 보면 "늘었다/줄었다"는 알아도 회사 전체 흐름 속에서 어떤 위치인지는 모른다.
+       회사 전체도 똑같이 자기 1년 평균과 견줘 판정해 같이 준다 — 서로 나누지 않고 각자
+       판정한 방향을 나란히 놓는 방식이라 마감 밀림·나눗셈 부풀림 같은 문제가 없다. */
+    if(index<0)return null;
+    const cur={sales:monthlyEquivalent(valueAt({sales:M.sales.all,profit:M.profit.all},'sales',{index,scope}),index,scope),
+               profit:monthlyEquivalent(valueAt({sales:M.sales.all,profit:M.profit.all},'profit',{index,scope}),index,scope)};
+    return `회사 전체 동향(1년평균대비): 매출 ${trendLabel(cur.sales,avgOverPeriod(M.sales.all,index,12))} · 영업이익 ${trendLabel(cur.profit,avgOverPeriod(M.profit.all,index,12))}`;
   }
   function insightRows(rows,label='구분',period=null){
     /* 회사 전체 매출 대비 이 항목의 비중을 붙인다 — 팀·판매구분·거래처 어디든
@@ -4716,27 +4741,34 @@ ${insightRules()}`;
     const head=`${label} | 매출(억) | 영업이익(억) | 이익률(%) | 회사매출비중`;
     const line=row=>`${row.name} | ${fmt(row.sales)} | ${fmt(row.profit)} | ${fmt(row.rate)} | ${shareOf(row)}`;
     if(index<0||!rows.some(row=>insightSeries(row.name)))return head+`\n`+rows.map(line).join(`\n`);
-    return head+` | 직전기간매출 | 직전기간영업이익 | 직전기간이익률 | 전년동기매출 | 전년동기영업이익 | 전년동기이익률 | 최근6개월평균이익률 | 최근6개월매출추이(월별,과거>최근) | 매출동향(1년평균대비) | 영업이익동향(1년평균대비)\n`
+    const companyLine=companyTrendLine(index,scope);
+    return (companyLine?companyLine+`\n\n`:``)
+      +head+` | 직전기간매출 | 직전기간영업이익 | 직전기간이익률 | 전년동기매출 | 전년동기영업이익 | 전년동기이익률 | 최근6개월평균이익률 | 최근6개월매출추이(월별,과거>최근) | 매출동향(1년평균대비) | 영업이익동향(1년평균대비)\n`
       +rows.map(row=>{
         const series=insightSeries(row.name);
         if(!series)return line(row)+' | - | - | - | - | - | - | - | - | - | -';
         const prev=insightPoint(series,index-1,scope),yoy=insightPoint(series,index-12,scope),avg=insightAvgRate(series,index);
         const trend=insightTrend(series,index)||'-';
-        const salesTrend=trendLabel(row.sales,avgOverPeriod(series.sales,index,12));
-        const profitTrend=trendLabel(row.profit,avgOverPeriod(series.profit,index,12));
+        const salesTrend=trendLabel(monthlyEquivalent(row.sales,index,scope),avgOverPeriod(series.sales,index,12));
+        const profitTrend=trendLabel(monthlyEquivalent(row.profit,index,scope),avgOverPeriod(series.profit,index,12));
         return `${line(row)} | ${cell(prev&&prev.sales)} | ${cell(prev&&prev.profit)} | ${cell(prev&&prev.rate)} | ${cell(yoy&&yoy.sales)} | ${cell(yoy&&yoy.profit)} | ${cell(yoy&&yoy.rate)} | ${cell(avg)} | ${trend} | ${salesTrend} | ${profitTrend}`;
       }).join(`\n`);
   }
   function insightPeriodRows(rows){
     return `기간 | 매출(억) | 영업이익(억) | 이익률(%)\n`+rows.map(row=>`${row.period} | ${fmt(row.sales)} | ${fmt(row.profit)} | ${fmt(row.rate)}`).join('\n');
   }
-  function insightYearTrend(current,latest12){
+  function insightYearTrend(current,latest12,index,scope,share){
     /* 팀·거래처 하나를 콕 집었을 때, 이미 화면에 그려둔 최근 12개월 목록의 평균을 그대로 써서
        "1년 평균 대비 지금 늘었는지 줄었는지"만 알려준다. 마감 밀림에 흔들리는 전달 대비 대신
-       12개월 평균을 기준으로 삼아 한두 달의 타이밍 잡음을 흡수한다. */
+       12개월 평균을 기준으로 삼아 한두 달의 타이밍 잡음을 흡수한다.
+       회사 전체 방향도 같은 방식으로 판정해 함께 준다 — 비율로 나누지 않고 방향만 나란히 놓아,
+       AI가 "회사는 빠지는데 이 팀은 버틴다" 같은 관계를 문장으로 풀 수 있게 한다. */
     const avgSales=latest12.length?latest12.reduce((n,r)=>n+(+r.sales||0),0)/latest12.length:null;
     const avgProfit=latest12.length?latest12.reduce((n,r)=>n+(+r.profit||0),0)/latest12.length:null;
-    return `매출동향(1년평균대비) | 영업이익동향(1년평균대비)\n${trendLabel(current.sales,avgSales)} | ${trendLabel(current.profit,avgProfit)}`;
+    const own=`이 항목 동향(1년평균대비): 매출 ${trendLabel(monthlyEquivalent(current.sales,index,scope),avgSales)} · 영업이익 ${trendLabel(monthlyEquivalent(current.profit,index,scope),avgProfit)}`;
+    const company=index>=0?companyTrendLine(index,scope):null;
+    const shareLine=share!=null?`\n회사 전체 매출에서 이 항목이 차지하는 비중: ${fmt(share)}%`:'';
+    return own+(company?`\n${company}`:'')+shareLine;
   }
 
   function yearViewFollowups(text,periodIndex){
@@ -4937,8 +4969,8 @@ ${insightRules()}`;
         for(let i=Math.max(0,idx-11);i<=idx;i++){const s=+series.sales[i]||0,p=+series.profit[i]||0;latest12.push({period:M.months[i],sales:s,profit:p,rate:s?p/s*100:0})}
         const custCurrent={sales:rows[0].sales,profit:rows[0].profit};
         fillInsight(custSlot,`${exact} 손익 (${period.label})`,
-          `[이번 기간]\n${insightPeriodRows([{period:period.label,sales:rows[0].sales,profit:rows[0].profit,rate:rows[0].rate}])}\n\n[1년 평균 대비]\n${insightYearTrend(custCurrent,latest12)}\n\n[최근 12개월]\n${insightPeriodRows(latest12.slice().reverse())}`,
-          '특정 거래처 하나의 월별 이력이다. 단위는 억원. [1년 평균 대비]는 최근 12개월 평균과 견줘 지금이 늘었는지 줄었는지 유지 중인지를 미리 판정해 둔 것이다.');
+          `[이번 기간]\n${insightPeriodRows([{period:period.label,sales:rows[0].sales,profit:rows[0].profit,rate:rows[0].rate}])}\n\n[1년 평균 대비]\n${insightYearTrend(custCurrent,latest12,idx,period.scope,(()=>{const cs=valueAt({sales:M.sales.all,profit:M.profit.all},'sales',period);return cs?rows[0].sales/cs*100:null})())}\n\n[최근 12개월]\n${insightPeriodRows(latest12.slice().reverse())}`,
+          '특정 거래처 하나의 월별 이력이다. 단위는 억원. [1년 평균 대비]는 이 거래처와 회사 전체 각각을 자기 최근 12개월 평균과 견줘 늘었는지 줄었는지 유지 중인지 미리 판정해 둔 것이다.');
       }else{
         fillInsight(custSlot,`거래처별 ${metricLabel(metric)} (${period.label})`,insightRows(rows,'거래처',period),'거래처 단위 합계 숫자다. 매출·영업이익 단위는 억원. 회사매출비중이 함께 붙어 있다(거래처는 월별 이력이 없어 증감기여도는 계산하지 않는다).');
       }
