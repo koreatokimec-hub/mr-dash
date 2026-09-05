@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_b6</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_b7</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4232,7 +4232,7 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
 .rag-suggestions button:hover{border-color:#7567c7;color:#7567c7;background:color-mix(in srgb,#7567c7 8%,var(--card))}
 .rag-answer{margin-top:0;font-size:14px}.rag-chat{display:flex;flex-direction:column;gap:16px}.rag-message{display:flex;width:100%}.rag-message-user{justify-content:flex-end}.rag-message-assistant{justify-content:flex-start}.rag-user-pill{position:relative;max-width:78%;padding:11px 17px;border-radius:17px;background:linear-gradient(135deg,#286493,#665bc3);color:#fff;font-size:14.5px;font-weight:750;line-height:1.5;box-shadow:0 5px 15px rgba(47,80,150,.2);word-break:keep-all;overflow-wrap:anywhere}.rag-user-pill::after{content:'';position:absolute;right:-7px;bottom:5px;width:14px;height:14px;background:#665bc3;clip-path:polygon(0 0,100% 100%,0 78%)}.rag-assistant-card{position:relative;width:min(94%,720px);padding:17px 18px;border:1px solid #dce6f1;border-radius:17px;background:#fff;box-shadow:0 7px 22px rgba(31,62,93,.08)}.rag-assistant-card::before{content:'';position:absolute;left:-8px;top:14px;width:14px;height:14px;background:#fff;border-left:1px solid #dce6f1;border-bottom:1px solid #dce6f1;transform:rotate(45deg)}.rag-assistant-label{position:relative;display:flex;align-items:center;gap:7px;margin-bottom:11px;color:#6759b9;font-size:12px;font-weight:850}.rag-assistant-label::before{content:'⌕';display:grid;place-items:center;width:27px;height:27px;border-radius:9px;background:#eeebff;color:#6759b9;font-size:14px}.rag-turn-loading .rag-assistant-card{background:#fbfcff}
 .rag-answer-empty{padding:36px 12px;text-align:center;color:var(--muted);font-size:12px;line-height:1.65}
-.rag-answer.rag-insight-waiting{position:relative;min-height:200px}.rag-answer.rag-insight-waiting>*{visibility:hidden}.rag-answer.rag-insight-waiting::after{content:'AX 정리까지 붙이는 중…';position:absolute;inset:0;display:grid;place-items:center;color:#6759b9;font-size:13px;font-weight:800}
+.rag-answer.rag-insight-waiting{position:relative;min-height:200px}.rag-answer.rag-insight-waiting>*:not(.rag-wait-overlay){visibility:hidden}.rag-wait-overlay{position:absolute;inset:0;display:grid;place-items:center}.rag-wait-overlay .rag-wave{width:min(320px,80%);margin:0}
 .rag-start{padding:8px 0}.rag-start h3{margin:0;color:var(--ink);font-size:21px}.rag-start p{margin:7px 0 18px;color:var(--muted);font-size:13.5px}.rag-start-grid{display:grid;grid-template-columns:1fr;gap:11px}
 .rag-starter{position:relative;min-height:66px;border:1px solid #dbe5f0;border-radius:15px;background:#fff;color:#7c8896;padding:13px 15px;text-align:left;font:750 13.5px/1.45 var(--font);cursor:pointer;box-shadow:0 4px 14px rgba(35,65,95,.06);transition:all .18s}.rag-starter:hover{transform:translateY(-2px);border-color:#887bd2;color:#5d50ae;box-shadow:0 8px 18px rgba(73,73,150,.12)}
 .rag-answer h3{margin:0 0 8px;color:var(--ink);font-size:18px;font-weight:850}
@@ -4281,7 +4281,7 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
 <div class="tkp-natural-drawer" id="tkpNaturalDrawer" role="dialog" aria-label="손익 자연어 검색 패널" aria-modal="false">
   <div class="rag-head"><div class="rag-head-title"><i>⌕</i><div><b>AX_챗봇</b></div></div><button class="rag-toolbar-button" id="ragSettings" type="button" hidden>연결 설정</button><button class="rag-close" id="ragClose" type="button" aria-label="닫기">×</button></div>
   <div class="rag-body">
-    <div class="rag-api" id="ragApiPanel"><div class="rag-api-row"><input class="rag-api-input" id="ragApiKey" type="password" autocomplete="off" placeholder="대시보드 접속 암호 입력 (저장하지 않음)"><button class="rag-api-test" id="ragApiTest" type="button">연결 확인</button></div><div class="rag-api-state" id="ragApiState">암호가 없으면 기존 로컬 해석으로 동작합니다.</div><div class="rag-insight-prompt" id="ragInsightPrompt" hidden><div class="rag-api-state">AX 정리 지시문 — 원하는 대로 고쳐 쓰면 이 브라우저에 저장됩니다.</div><textarea id="ragInsightRules" rows="6" spellcheck="false"></textarea><button class="rag-api-test" id="ragInsightReset" type="button">기본 지시문으로</button></div></div>
+    <div class="rag-api" id="ragApiPanel"><div class="rag-api-row"><input class="rag-api-input" id="ragApiKey" type="password" autocomplete="off" placeholder="대시보드 접속 암호 입력 (저장하지 않음)"><button class="rag-api-test" id="ragApiTest" type="button">연결 확인</button></div><div class="rag-api-state" id="ragApiState">암호가 없으면 기존 로컬 해석으로 동작합니다.</div><div class="rag-insight-prompt" id="ragInsightPrompt" hidden><div class="rag-api-state">AI 내용정리 지시문 — 원하는 대로 고쳐 쓰면 이 브라우저에 저장됩니다.</div><textarea id="ragInsightRules" rows="6" spellcheck="false"></textarea><button class="rag-api-test" id="ragInsightReset" type="button">기본 지시문으로</button></div></div>
     <div class="rag-suggestions" id="ragSuggestions" hidden></div>
     <section class="rag-answer" id="ragAnswer"><div class="rag-start"><h3>무엇을 확인할까요?</h3><p>검증된 예시 질문을 선택하거나 아래에 직접 입력하세요.</p><div class="rag-start-grid"></div></div></section>
   </div>
@@ -4337,7 +4337,7 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
   function resetConversation(){if(geminiBusy)return;viewHistory=[];chatHtml='';pendingGemini=null;activeTeam=null;activeCustomer=null;activeItem=null;input.value='';suggestions.innerHTML=defaultSuggestions;answer.innerHTML=startHtml();updateBack();setTimeout(()=>input.focus(),0)}
   function startLoading(base,question){
     clearInterval(loadingTimer);const steps=['질문을 이해하고 있습니다','조회 조건을 정리하고 있습니다','데이터 범위를 확인하고 있습니다','결과를 준비하고 있습니다'];let index=0;
-    const wave=`<div class="rag-wave" aria-hidden="true"><svg viewBox="0 0 300 60" preserveAspectRatio="none"><defs><linearGradient id="ragWaveGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#bfe0ff"/><stop offset="50%" stop-color="#2f6fed"/><stop offset="100%" stop-color="#bfe0ff"/></linearGradient><filter id="ragWaveGlow" x="-20%" y="-100%" width="140%" height="300%"><feGaussianBlur stdDeviation="1.3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g fill="none" stroke-linecap="round" filter="url(#ragWaveGlow)"><path class="rag-wave-line l1" d="M0,30 C40,8 60,8 100,30 C140,52 160,52 200,30 C240,8 260,8 300,30" stroke="url(#ragWaveGrad)" stroke-width="2.2" opacity=".5"/><path class="rag-wave-line l2" d="M0,30 C30,46 70,46 100,30 C130,14 170,14 200,30 C230,46 270,46 300,30" stroke="url(#ragWaveGrad)" stroke-width="2" opacity=".75"/><path class="rag-wave-line l3" d="M0,30 C25,20 45,4 75,30 C105,56 125,56 150,30 C175,4 195,4 225,30 C255,56 275,44 300,30" stroke="#3f6fe0" stroke-width="1.6" opacity=".95"/></g></svg></div>`;
+    const wave=RAG_WAVE;
     const paint=()=>{const loading=`<div class="rag-loading"><div class="rag-loading-title">${steps[index]}</div><div class="rag-loading-sub">잠시만 기다려 주세요. 숫자는 내장 데이터에서 계산합니다.</div>${wave}</div>`;paintChat(base+userBubble(question)+`<div class="rag-message rag-message-assistant rag-turn-loading"><div class="rag-assistant-card"><div class="rag-assistant-label">데이터 답변</div>${loading}</div></div>`)};paint();loadingTimer=setInterval(()=>{index=(index+1)%steps.length;paint()},850);return()=>{clearInterval(loadingTimer);loadingTimer=null}
   }
   const RELAY_URL='https://mr-dash-relay-453758331438.asia-northeast3.run.app';
@@ -4507,7 +4507,7 @@ ${prior}`;
   function followups(items){return `<div class="rag-section-title">이어서 확인할 수 있어요</div><div class="rag-clarify-list">${items.map(item=>{const obj=typeof item==='string'?{label:item,value:item}:item;return `<button type="button" class="rag-clarify" data-clarify="${esc(obj.value)}">${esc(obj.label)}</button>`}).join('')}</div>`}
   function gotoButton(view,label){return `<button type="button" class="rag-goto" data-goto="${view}">${esc(label)} ↗</button>`}
 
-  /* ===== AX 정리 (AI 해설) ===========================================
+  /* ===== AI 내용정리 ================================================
      표는 지금처럼 로컬에서 정확히 계산해 먼저 그리고, 그 숫자만 AI에 보내
      2~3문장 해설을 덧붙인다. AI는 표에 있는 값만 인용하도록 프롬프트에서 막는다.
 
@@ -4518,9 +4518,9 @@ ${prior}`;
      insightLevel
        0 = 해설 안 붙임 (기본값)
        1 = 팀·판매구분·회사전체 합계 숫자만 외부로 보낸다 (거래처·품목 이름 제외)
-       2 = 거래처·품목·담당자 단위까지 보낸다 (현재 여기까지 열려 있음)
+       2 = 거래처·품목·담당자 단위까지 보낸다 (수천 개 중 몇 건만 두고 정리해 봐야 의미가 없어 꺼 둠)
      ------------------------------------------------------------------ */
-  const INSIGHT_MAX_LEVEL=2;
+  const INSIGHT_MAX_LEVEL=1;
   let insightLevel=0;
   (function(){
     const trigger=document.getElementById('devModeTrigger');
@@ -4533,7 +4533,7 @@ ${prior}`;
       if(count>=7){
         count=0;
         insightLevel=insightLevel?0:INSIGHT_MAX_LEVEL;
-        trigger.textContent=insightLevel?baseLabel+' · AX 정리 ON':baseLabel;
+        trigger.textContent=insightLevel?baseLabel+' · AI 내용정리 ON':baseLabel;
         syncInsightPrompt();
       }
     });
@@ -4580,8 +4580,9 @@ ${prior}`;
     reset.addEventListener('click',()=>{try{localStorage.removeItem(INSIGHT_RULES_KEY)}catch(error){}field.value=INSIGHT_DEFAULT_RULES});
   })();
   syncInsightPrompt();
+  const RAG_WAVE=`<div class="rag-wave" aria-hidden="true"><svg viewBox="0 0 300 60" preserveAspectRatio="none"><defs><linearGradient id="ragWaveGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#bfe0ff"/><stop offset="50%" stop-color="#2f6fed"/><stop offset="100%" stop-color="#bfe0ff"/></linearGradient><filter id="ragWaveGlow" x="-20%" y="-100%" width="140%" height="300%"><feGaussianBlur stdDeviation="1.3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g fill="none" stroke-linecap="round" filter="url(#ragWaveGlow)"><path class="rag-wave-line l1" d="M0,30 C40,8 60,8 100,30 C140,52 160,52 200,30 C240,8 260,8 300,30" stroke="url(#ragWaveGrad)" stroke-width="2.2" opacity=".5"/><path class="rag-wave-line l2" d="M0,30 C30,46 70,46 100,30 C130,14 170,14 200,30 C230,46 270,46 300,30" stroke="url(#ragWaveGrad)" stroke-width="2" opacity=".75"/><path class="rag-wave-line l3" d="M0,30 C25,20 45,4 75,30 C105,56 125,56 150,30 C175,4 195,4 225,30 C255,56 275,44 300,30" stroke="#3f6fe0" stroke-width="1.6" opacity=".95"/></g></svg></div>`;
   let insightSeq=0;
-  const INSIGHT_LOADING='<span class="rag-insight-loading">AX 정리를 준비하는 중…</span>';
+  const INSIGHT_LOADING='<span class="rag-insight-loading">AI 내용정리를 준비하는 중…</span>';
   /* 해설이 붙는 답변은 해설이 다 올 때까지 화면에 내보내지 않는다.
      표가 먼저 뜨고 몇 초 뒤 해설이 툭 끼어들면 화면이 밀려서 읽던 자리를 놓치기 때문이다. */
   let insightWait=null;
@@ -4593,10 +4594,15 @@ ${prior}`;
   async function awaitInsight(){
     const wait=insightWait;insightWait=null;
     if(wait){
+      /* 결과는 그려 두되 감추고, 그 위에 파동만 계속 돌린다 (문구 없이) */
       answer.classList.add('rag-insight-waiting');
+      answer.insertAdjacentHTML('beforeend',`<div class="rag-wait-overlay">${RAG_WAVE}</div>`);
       /* 중계서버가 응답을 안 주는 최악의 경우에도 15초 뒤에는 표라도 보여 준다 */
       try{await Promise.race([wait.promise,new Promise(resolve=>setTimeout(resolve,15000))])}
-      finally{answer.classList.remove('rag-insight-waiting')}
+      finally{
+        answer.classList.remove('rag-insight-waiting');
+        answer.querySelectorAll('.rag-wait-overlay').forEach(node=>node.remove());
+      }
     }
     /* 자리만 잡히고 채워지지 않은 슬롯은 남겨두면 "준비하는 중…"이 영원히 박혀 있게 된다 */
     answer.querySelectorAll('.rag-insight').forEach(node=>{if(node.querySelector('.rag-insight-loading'))node.remove()});
@@ -4623,7 +4629,7 @@ ${insightRules()}`;
     const drop=()=>{const live=document.getElementById(slot.id);if(live)live.remove();chatHtml=chatHtml.split(before).join('')};
     try{
       const text=await callInsight(title,rows,note);
-      const filled=`<div class="rag-insight-title">AX 정리</div><p>${esc(text).replace(/\n+/g,'<br>')}</p>`;
+      const filled=`<div class="rag-insight-title">AI 내용정리</div><p>${esc(text).replace(/\n+/g,'<br>')}</p>`;
       const live=document.getElementById(slot.id);if(live)live.innerHTML=filled;
       /* 대화 기록에도 반영해야 뒤로가기·다음 질문 뒤에도 해설이 남는다 */
       chatHtml=chatHtml.split(before).join(`<div class="rag-insight" id="${slot.id}">${filled}</div>`);
