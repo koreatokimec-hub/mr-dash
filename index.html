@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_c6</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_c7</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4494,8 +4494,8 @@ ${prior}`;
     html+=`<button type="button" class="rag-goto" data-goto="p2">팀별구분 탭에서 차트로 보기 ↗</button>`;
     answer.innerHTML=html;
     if(teamSlot)fillInsight(teamSlot,`${team} 종합 자료 (${current.period} 기준)`,
-      `[이번 달]\n${insightPeriodRows([current])}\n\n[최근 12개월]\n${insightPeriodRows(latest12.slice().reverse())}`,
-      '팀 단위 합계 숫자다. 매출·영업이익 단위는 억원.');
+      `[이번 달]\n${insightPeriodRows([current])}\n\n[회사 전체 대비]\n${insightCompanyContext(current.sales,current.profit,prev&&prev.sales,prev&&prev.profit,index,'month')}\n\n[최근 12개월]\n${insightPeriodRows(latest12.slice().reverse())}`,
+      '팀 단위 합계 숫자다. 매출·영업이익 단위는 억원. [회사 전체 대비]는 이 팀의 매출이 회사 전체 매출에서 차지하는 비중과, 회사 전체 매출·영업이익 증감분 중 이 팀이 만든 비율이다.');
   }
   function teamRows(plan){
     return Object.entries(M.teamSeries||{}).map(([name,series])=>{const sales=valueAt(series,'sales',plan.period),profit=valueAt(series,'profit',plan.period),rate=sales?profit/sales*100:0;let value={sales,profit,rate}[plan.metric],delta=null;
@@ -4574,6 +4574,13 @@ ${prior}`;
   증감에는 영향이 크지 않다"), 반대로 비중은 작지만 증감의 상당 부분을 이 항목이 만든 경우("비중은
   작지만 이번 매출 증감을 주도했다")는 표만 봐서는 안 보이니 짚어라. 회사영업이익증감기여도도 같은
   방식으로 보되, 매출 기여도와 방향이 다르면(매출은 늘렸는데 이익은 깎아먹었다든지) 반드시 짚어라.
+- [회사 전체 대비]가 있는 경우(팀·거래처 하나를 콕 집었을 때), 영업이익이나 이익률 변화를 이야기할 때
+  그 항목 안에서만 보지 말고 회사영업이익증감기여도를 반드시 함께 고려하라. 회사 전체가 다 같이
+  움직이는 흐름 속의 변화인지, 이 항목 혼자만의 변화인지가 그래야 구분된다.
+- 증감기여도 숫자만 보고 판단하지 마라. 회사 전체 증감액 자체가 작은 달에는 이 항목의 증감이 아주
+  적어도(매출·영업이익이 억 단위로 거의 안 움직였는데도) 나눗셈 때문에 기여도가 수십~수백%로 부풀어
+  보일 수 있다. 그런 경우는 특이점으로 짚지 마라 — 이 항목 자체의 매출·영업이익 변화가 실제로도
+  뚜렷할 때만 기여도를 근거로 써라.
 - 형식: "항목명 — 짚을 내용" 한 줄. 한 줄은 두 문장을 넘기지 마라.
 - 숫자 변화만 옮겨 적지 마라. 근거 숫자 두 개 이상과 함께, 그게 왜 눈에 띄는지 해석을 반드시 붙여라.
   나쁜 예: "공압사업팀 — 영업이익이 0.4억에서 1.2억이 되었다." (숫자만 옮김. 표를 보면 아는 내용)
@@ -4708,15 +4715,38 @@ ${insightRules()}`;
         if(!series)return line(row)+' | - | - | - | - | - | - | - | - | - | -';
         const prev=insightPoint(series,index-1,scope),yoy=insightPoint(series,index-12,scope),avg=insightAvgRate(series,index);
         const rowDelta=prev?row.sales-prev.sales:null;
-        const contribution=(companyDelta&&rowDelta!=null)?fmt(rowDelta/companyDelta*100)+'%':'-';
+        const contribution=contribOrDash(rowDelta,companyDelta,prev&&prev.sales);
         const rowProfitDelta=prev?row.profit-prev.profit:null;
-        const profitContribution=(companyProfitDelta&&rowProfitDelta!=null)?fmt(rowProfitDelta/companyProfitDelta*100)+'%':'-';
+        const profitContribution=contribOrDash(rowProfitDelta,companyProfitDelta,prev&&prev.profit);
         const trend=insightTrend(series,index)||'-';
         return `${line(row)} | ${cell(prev&&prev.sales)} | ${cell(prev&&prev.profit)} | ${cell(prev&&prev.rate)} | ${cell(yoy&&yoy.sales)} | ${cell(yoy&&yoy.profit)} | ${cell(yoy&&yoy.rate)} | ${cell(avg)} | ${trend} | ${contribution} | ${profitContribution}`;
       }).join(`\n`);
   }
   function insightPeriodRows(rows){
     return `기간 | 매출(억) | 영업이익(억) | 이익률(%)\n`+rows.map(row=>`${row.period} | ${fmt(row.sales)} | ${fmt(row.profit)} | ${fmt(row.rate)}`).join('\n');
+  }
+  /* 회사 전체 증감액 자체가 작은 달에는, 이 항목이 거의 안 움직여도(자기 직전값 대비 1% 미만
+     변화) 나눗셈 때문에 기여도가 수백%로 부풀어 보인다. AI에게 "부풀려진 숫자는 무시하라"고
+     프롬프트로만 시키면 안 지켜지므로, 애초에 그런 경우는 계산 단계에서 '-'로 감춘다. */
+  function contribOrDash(delta,companyDelta,prevValue){
+    if(delta==null||!companyDelta)return '-';
+    if(prevValue&&Math.abs(delta)/Math.abs(prevValue)<0.01)return '-';
+    return fmt(delta/companyDelta*100)+'%';
+  }
+  function insightCompanyContext(sales,profit,prevSales,prevProfit,index,scope){
+    /* 팀·거래처 하나를 콕 집었을 때도 "회사 전체에서 이 정도 비중이고, 이번 증감의 이 정도를
+       만들었다"는 맥락이 없으면 영업이익·이익률 변화를 그 항목 안에서만 보게 된다.
+       팀 순위표 해설에 쓰던 것과 같은 계산을 여기서도 내서 붙인다. */
+    const companySales=index>=0?valueAt({sales:M.sales.all,profit:M.profit.all},'sales',{index,scope}):0;
+    const companyPrevSales=index>0?valueAt({sales:M.sales.all,profit:M.profit.all},'sales',{index:index-1,scope}):null;
+    const companyProfit=index>=0?valueAt({sales:M.sales.all,profit:M.profit.all},'profit',{index,scope}):0;
+    const companyPrevProfit=index>0?valueAt({sales:M.sales.all,profit:M.profit.all},'profit',{index:index-1,scope}):null;
+    const share=companySales?fmt(sales/companySales*100)+'%':'-';
+    const salesDelta=prevSales!=null?sales-prevSales:null,companySalesDelta=companyPrevSales!=null?companySales-companyPrevSales:null;
+    const salesContribution=contribOrDash(salesDelta,companySalesDelta,prevSales);
+    const profitDelta=prevProfit!=null?profit-prevProfit:null,companyProfitDelta=companyPrevProfit!=null?companyProfit-companyPrevProfit:null;
+    const profitContribution=contribOrDash(profitDelta,companyProfitDelta,prevProfit);
+    return `회사매출비중 | 회사매출증감기여도 | 회사영업이익증감기여도\n${share} | ${salesContribution} | ${profitContribution}`;
   }
 
   function yearViewFollowups(text,periodIndex){
@@ -4915,9 +4945,10 @@ ${insightRules()}`;
            팀 상세와 같은 방식으로 최근 12개월 이력을 같이 넘겨 실제 평가가 나오게 한다. */
         const series=history[exact],idx=period.index,latest12=[];
         for(let i=Math.max(0,idx-11);i<=idx;i++){const s=+series.sales[i]||0,p=+series.profit[i]||0;latest12.push({period:M.months[i],sales:s,profit:p,rate:s?p/s*100:0})}
+        const custPrev=insightPoint(series,idx-1,period.scope);
         fillInsight(custSlot,`${exact} 손익 (${period.label})`,
-          `[이번 기간]\n${insightPeriodRows([{period:period.label,sales:rows[0].sales,profit:rows[0].profit,rate:rows[0].rate}])}\n\n[최근 12개월]\n${insightPeriodRows(latest12.slice().reverse())}`,
-          '특정 거래처 하나의 월별 이력이다. 단위는 억원.');
+          `[이번 기간]\n${insightPeriodRows([{period:period.label,sales:rows[0].sales,profit:rows[0].profit,rate:rows[0].rate}])}\n\n[회사 전체 대비]\n${insightCompanyContext(rows[0].sales,rows[0].profit,custPrev&&custPrev.sales,custPrev&&custPrev.profit,idx,period.scope)}\n\n[최근 12개월]\n${insightPeriodRows(latest12.slice().reverse())}`,
+          '특정 거래처 하나의 월별 이력이다. 단위는 억원. [회사 전체 대비]는 이 거래처의 매출이 회사 전체 매출에서 차지하는 비중과, 회사 전체 매출·영업이익 증감분 중 이 거래처가 만든 비율이다.');
       }else{
         fillInsight(custSlot,`거래처별 ${metricLabel(metric)} (${period.label})`,insightRows(rows,'거래처',period),'거래처 단위 합계 숫자다. 매출·영업이익 단위는 억원. 회사매출비중이 함께 붙어 있다(거래처는 월별 이력이 없어 증감기여도는 계산하지 않는다).');
       }
