@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_a4</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_a5</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4247,6 +4247,8 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
 .rag-clarify-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
 .rag-clarify{border:1px solid #7567c7;border-radius:999px;background:color-mix(in srgb,#7567c7 6%,var(--card));color:#6759b9;padding:7px 12px;font:800 11px var(--font);cursor:pointer}
 .rag-clarify:hover{background:#7567c7;color:#fff}
+.rag-goto{display:inline-flex;align-items:center;gap:6px;margin-top:12px;border:1px solid #2f6fed;border-radius:999px;background:color-mix(in srgb,#2f6fed 8%,var(--card));color:#1a4fb0;padding:8px 15px;font:800 12px var(--font);cursor:pointer}
+.rag-goto:hover{background:#2f6fed;color:#fff}
 .rag-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:11px;background:var(--card);margin-bottom:8px}
 .rag-table{width:100%;border-collapse:collapse;font-size:13px;white-space:nowrap}
 .rag-table th,.rag-table td{padding:11px 12px;border-bottom:1px solid var(--border);text-align:right}
@@ -4460,6 +4462,7 @@ ${prior}`;
     const yearlyRows=[...new Set(M.months.map(m=>m.slice(0,4)))].sort((a,b)=>b-a).map(y=>{const idx=lastMonthOfYear(y);return {...teamPoint(team,idx,'ytd'),period:y+'년 누계'}});
     html+=`<div class="rag-section-title">연도별 누계</div>${standardTable(yearlyRows)}`;
     html+=`<div class="rag-section-title">전체 기간 적자 월</div>${lossMonths.length?standardTable(lossMonths.slice(0,12)):'<p class="rag-answer-summary">적자 월이 없습니다.</p>'}`;
+    html+=`<button type="button" class="rag-goto" data-goto="p2">팀별구분 탭에서 차트로 보기 ↗</button>`;
     answer.innerHTML=html;
   }
   function teamRows(plan){
@@ -4570,6 +4573,7 @@ ${prior}`;
     if(prev||yoy)html+=`<div class="rag-section-title">전월·전년 동월 비교</div><div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>비교</th><th>매출 증감</th><th>이익액 증감</th><th>이익률 차이</th></tr></thead><tbody><tr><td><b>전월 대비</b></td>${changeCell(prev?change(current.sales,prev.sales):null)}${changeCell(prev?change(current.profit,prev.profit):null)}${changeCell(prev?change(current.rate,prev.rate,true):null,'%p')}</tr><tr><td><b>전년 동월 대비</b></td>${changeCell(yoy?change(current.sales,yoy.sales):null)}${changeCell(yoy?change(current.profit,yoy.profit):null)}${changeCell(yoy?change(current.rate,yoy.rate,true):null,'%p')}</tr></tbody></table></div>`;
     html+=`<div class="rag-section-title">최근 12개월 이력</div>${standardTable(latest12.slice().reverse())}`;
     html+=`<div class="rag-section-title">전체 기간 적자 월</div>${lossMonths.length?standardTable(lossMonths.slice(0,12)):'<p class="rag-answer-summary">문제판매 목록 이력상 적자 월이 없습니다.</p>'}`;
+    html+=`<button type="button" class="rag-goto" data-goto="p5">상세(제품·상품) 탭에서 보기 ↗</button>`;
     answer.innerHTML=html;
   }
   function renderItems(command,original){
@@ -4737,6 +4741,7 @@ ${prior}`;
   answer.addEventListener('click',event=>{const button=event.target.closest('.rag-choice');if(!button)return;event.preventDefault();event.stopPropagation();applyTarget(button.dataset.target)},true);
   answer.addEventListener('click',event=>{const button=event.target.closest('.rag-clarify');if(!button)return;event.preventDefault();event.stopPropagation();const reply=button.dataset.clarify||button.textContent;input.value=reply;submitQuestion(reply)},true);
   answer.addEventListener('click',event=>{const button=event.target.closest('.rag-starter');if(!button)return;event.preventDefault();event.stopPropagation();submitQuestion(button.textContent)},true);
+  answer.addEventListener('click',event=>{const button=event.target.closest('.rag-goto');if(!button)return;event.preventDefault();event.stopPropagation();panel.classList.remove('open');const tabLink=document.querySelector(`#tabNav a[data-p="${button.dataset.goto}"]`);if(tabLink)tabLink.click()},true);
   window.addEventListener('pointerdown',event=>{const button=event.target.closest&&event.target.closest('.rag-choice');if(!button)return;event.preventDefault();event.stopPropagation();applyTarget(button.dataset.target)},true);
   window.addEventListener('click',event=>{const button=event.target.closest&&event.target.closest('[data-resolve]');if(!button)return;event.preventDefault();event.stopPropagation();applyTarget(button.dataset.resolve)},true);
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&panel.classList.contains('open'))panel.classList.remove('open')});
