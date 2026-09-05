@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_b2</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_b3</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4539,12 +4539,14 @@ ${prior}`;
   })();
   /* 해설에 쓰는 지시문. 화면에서 직접 고쳐 쓸 수 있고 이 브라우저에만 저장된다. */
   const INSIGHT_RULES_KEY='ragInsightRules';
-  const INSIGHT_DEFAULT_RULES=`이 숫자만 근거로 2~3문장짜리 짧은 해설을 한국어로 써라.
-규칙:
-- 표에 없는 숫자를 새로 만들거나 직접 계산하지 마라. 주어진 값만 인용하라.
-- 눈에 띄는 변화(급감·급증), 1위·최하위, 이상한 값이 있으면 짚어라.
-- 원인은 단정하지 말고 "~로 보인다" 정도로만 쓰라. 조언·추천은 하지 마라.
-- 인사말·머리말 없이 본문만 써라.`;
+  const INSIGHT_DEFAULT_RULES=`표를 그대로 읽어 주지 말고, 여러 열을 견줘야 보이는 것만 최대 3개 골라 한 줄씩 써라.
+- 이런 걸 우선해라: 이번 기간만 튄 것(최근 6개월 평균과 크게 다른 것), 전년 동기와 방향이 반대인 것,
+  매출은 늘었는데 이익은 줄어든 것처럼 서로 안 맞는 것, 적자이거나 이익률이 유난히 낮은 것.
+- 형식: "항목명 — 짚을 내용" 한 줄. 근거가 된 숫자를 반드시 두 개 이상 함께 적어라.
+- 표에 있는 값만 쓰라. 없는 값을 만들거나 추정하지 마라. (표의 값끼리 빼거나 나누는 것은 허용한다)
+- '-'로 표시된 칸은 자료가 없다는 뜻이다. 그 칸을 근거로 삼지 마라.
+- 원인은 단정하지 말고 "~로 보인다" 정도로만. 조언·추천·전체 요약·인사말은 쓰지 마라.
+- 짚을 게 없으면 "특이점 없음"이라고만 써라.`;
   function insightRules(){
     let saved='';
     try{saved=localStorage.getItem(INSIGHT_RULES_KEY)||''}catch(error){saved=''}
@@ -4595,15 +4597,51 @@ ${insightRules()}`;
     const drop=()=>{const live=document.getElementById(slot.id);if(live)live.remove();chatHtml=chatHtml.split(before).join('')};
     try{
       const text=await callInsight(title,rows,note);
-      const filled=`<div class="rag-insight-title">AI 해설</div><p>${esc(text)}</p>`;
+      const filled=`<div class="rag-insight-title">AI 해설</div><p>${esc(text).replace(/\n+/g,'<br>')}</p>`;
       const live=document.getElementById(slot.id);if(live)live.innerHTML=filled;
       /* 대화 기록에도 반영해야 뒤로가기·다음 질문 뒤에도 해설이 남는다 */
       chatHtml=chatHtml.split(before).join(`<div class="rag-insight" id="${slot.id}">${filled}</div>`);
     }catch(error){drop()}
   }
   /* 표 한 줄을 "이름 | 매출 | 영업이익 | 이익률" 형태의 짧은 텍스트로 만든다 */
-  function insightRows(rows,label='구분'){
-    return `${label} | 매출(억) | 영업이익(억) | 이익률(%)\n`+rows.map(row=>`${row.name} | ${fmt(row.sales)} | ${fmt(row.profit)} | ${fmt(row.rate)}`).join('\n');
+  /* 해설에 넘기는 표를 넓힌다.
+     팀·판매구분은 월별 이력이 있어서 직전기간·전년동기·최근 6개월 평균까지 붙일 수 있고,
+     그래야 AI가 "이번 달만 튄 건지 몇 달째 그런 건지"를 지어내지 않고 짚을 수 있다.
+     이력이 없는 대상(거래처 등)은 예전처럼 이번 기간 숫자만 넘긴다. */
+  const INSIGHT_CATEGORY_SERIES={'상품':'goods','제품':'product','원자재':'other','원부자재':'other','기타':'other','원자재/기타':'other'};
+  function insightSeries(name){
+    const key=String(name||'').trim();
+    const team=M.teamSeries&&M.teamSeries[key];
+    if(team&&team.sales)return team;
+    const cat=INSIGHT_CATEGORY_SERIES[key];
+    if(cat&&M.sales[cat]&&M.profit[cat])return {sales:M.sales[cat],profit:M.profit[cat]};
+    return null;
+  }
+  function insightPoint(series,index,scope){
+    if(index<0)return null;
+    const sales=valueAt(series,'sales',{index,scope}),profit=valueAt(series,'profit',{index,scope});
+    if(!sales&&!profit)return null;
+    return {sales,profit,rate:sales?profit/sales*100:0};
+  }
+  function insightAvgRate(series,index,months=6){
+    if(index<0)return null;
+    let sales=0,profit=0,n=0;
+    for(let i=index;i>index-months&&i>=0;i--){sales+=+((series.sales||[])[i]||0);profit+=+((series.profit||[])[i]||0);n++}
+    return n?(sales?profit/sales*100:0):null;
+  }
+  function insightRows(rows,label='구분',period=null){
+    const head=`${label} | 매출(억) | 영업이익(억) | 이익률(%)`;
+    const line=row=>`${row.name} | ${fmt(row.sales)} | ${fmt(row.profit)} | ${fmt(row.rate)}`;
+    const index=period?period.index:-1,scope=(period&&period.scope)||'month';
+    if(index<0||!rows.some(row=>insightSeries(row.name)))return head+`\n`+rows.map(line).join(`\n`);
+    const cell=value=>value==null?'-':fmt(value);
+    return head+` | 직전기간매출 | 직전기간이익률 | 전년동기매출 | 전년동기이익률 | 최근6개월평균이익률\n`
+      +rows.map(row=>{
+        const series=insightSeries(row.name);
+        if(!series)return line(row)+' | - | - | - | - | -';
+        const prev=insightPoint(series,index-1,scope),yoy=insightPoint(series,index-12,scope),avg=insightAvgRate(series,index);
+        return `${line(row)} | ${cell(prev&&prev.sales)} | ${cell(prev&&prev.rate)} | ${cell(yoy&&yoy.sales)} | ${cell(yoy&&yoy.rate)} | ${cell(avg)}`;
+      }).join(`\n`);
   }
   function insightPeriodRows(rows){
     return `기간 | 매출(억) | 영업이익(억) | 이익률(%)\n`+rows.map(row=>`${row.period} | ${fmt(row.sales)} | ${fmt(row.profit)} | ${fmt(row.rate)}`).join('\n');
@@ -4681,7 +4719,7 @@ ${insightRules()}`;
     const monthSection=monthRows.length?`<div class="rag-section-title">${M.months[plan.period.index].slice(0,4)}년 월별 실적</div>${standardTable(monthRows.slice().reverse())}`:'';
     const rankSlot=insightSlot(1);
     answer.innerHTML=`<h3>${esc(text)} <span class="rag-basis ${metricBasisClass(plan.metric)}">(${esc(plan.period.label)} · 기준: ${esc(metric)})</span></h3><p class="rag-answer-summary">${esc(summary)}${totalRow?` 맨 위 행은 ${esc(plan.businessUnit)} 전체 합산입니다.`:''}</p>${chips([plan.period.label,plan.dimension==='team'?'팀별':'판매구분별',metric,plan.direction==='desc'?'높은 순':'낮은 순',compare,plan.negative?'적자만':''])}<div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>구분</th>${headCols}${deltaHead}</tr></thead><tbody>${body||`<tr><td colspan="${1+colOrder.length+(plan.comparison?1:0)}">${esc(empty)}</td></tr>`}</tbody></table></div>${monthSection}${rankSlot?rankSlot.html:''}${followups(plan.dimension==='team'?yearViewFollowups(text,plan.period.index):['판매구분별 매출 비교','판매구분별 영업이익 비교','판매구분별 이익률 비교'])}${plan.dimension==='team'?gotoButton('p2','팀별구분 탭에서 보기'):gotoButton('p5','상세(제품·상품) 탭에서 보기')}`;
-    if(rankSlot&&rows.length)fillInsight(rankSlot,`${text} (${plan.period.label})`,insightRows(rows,plan.dimension==='team'?'팀':'판매구분'),`${plan.dimension==='team'?'팀':'판매구분'} 단위 합계 숫자다. 매출·영업이익 단위는 억원.`);
+    if(rankSlot&&rows.length)fillInsight(rankSlot,`${text} (${plan.period.label})`,insightRows(rows,plan.dimension==='team'?'팀':'판매구분',plan.period),`${plan.dimension==='team'?'팀':'판매구분'} 단위 합계 숫자다. 매출·영업이익 단위는 억원. 직전기간·전년동기·최근 6개월 평균 이익률을 함께 붙였다. 이력이 없으면 -로 표시된다.`);
   }
   function commandPeriod(command){
     let index=latestIndex,scope=command.period_type==='month'?'month':'ytd';
@@ -4822,7 +4860,7 @@ ${insightRules()}`;
     const metricFollowups=['sales','profit','rate'].filter(k=>k!==metric).map(k=>({label:`${targetsShort} ${metricLabel(k)} 비교`,value:`${targetsFull} ${metricLabel(k)} 비교`}));
     const cmpSlot=insightSlot(1);
     answer.innerHTML=`<h3>팀 <span class="rag-basis ${metricBasisClass(metric)}">${esc(metricLabel(metric))}</span> 비교 <span class="rag-basis ${metricBasisClass(metric)}">(${esc(period.label)})</span></h3><p class="rag-answer-summary">${esc(detail)}</p>${chips([period.label,`${rows.length}개 팀`,metricLabel(metric),compareLabel])}<div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>팀</th>${headCols}${refOffset?`<th>${compareLabel}</th>`:''}</tr></thead><tbody>${body}</tbody></table></div>${cmpSlot?cmpSlot.html:''}${followups([...metricFollowups,...yearViewFollowups(original,period.index)])}${gotoButton('p2','팀별구분 탭에서 보기')}`;
-    if(cmpSlot)fillInsight(cmpSlot,`팀 비교 (${period.label})`,insightRows(rows,'팀'),'팀 단위 합계 숫자다. 매출·영업이익 단위는 억원.');
+    if(cmpSlot)fillInsight(cmpSlot,`팀 비교 (${period.label})`,insightRows(rows,'팀',period),'팀 단위 합계 숫자다. 매출·영업이익 단위는 억원. 직전기간·전년동기·최근 6개월 평균 이익률을 함께 붙였다. 이력이 없으면 -로 표시된다.');
   }
   function executeCommand(command,original){
     command=normalizeCommand(command,original);
@@ -4870,7 +4908,7 @@ ${insightRules()}`;
     const monthSection=monthRows.length?`<div class="rag-section-title">${M.months[plan.period.index].slice(0,4)}년 월별 실적</div>${standardTable(monthRows.slice().reverse())}`:'';
     const cmdRankSlot=insightSlot(1);
     answer.innerHTML=`<h3>${esc(original)} <span class="rag-basis ${metricBasisClass(plan.metric)}">(${esc(period.label)} · 기준: ${esc(metric)})</span></h3><p class="rag-answer-summary">${(rows.length?`${period.label} 기준 계산 결과입니다.`:esc(empty))+esc(categoryThresholdHint)}${totalRow?` 맨 위 행은 ${esc(plan.businessUnit)} 전체 합산입니다.`:''}</p>${chips([period.label,plan.dimension==='category'?'판매구분별':'팀별',metric,plan.direction==='asc'?'낮은 순':'높은 순',compare])}<div class="rag-table-wrap"><table class="rag-table"><thead><tr><th>구분</th>${headCols}${plan.comparison?`<th>${compare}</th>`:''}</tr></thead><tbody>${body||`<tr><td colspan="${1+colOrder.length+(plan.comparison?1:0)}">${esc(empty)}</td></tr>`}</tbody></table></div>${monthSection}${cmdRankSlot?cmdRankSlot.html:''}${followups(plan.dimension==='team'?yearViewFollowups(original,plan.period.index):['판매구분별 매출 비교','판매구분별 영업이익 비교','판매구분별 이익률 비교'])}${plan.dimension==='team'?gotoButton('p2','팀별구분 탭에서 보기'):gotoButton('p5','상세(제품·상품) 탭에서 보기')}`;
-    if(cmdRankSlot&&rows.length)fillInsight(cmdRankSlot,`${original} (${period.label})`,insightRows(rows,plan.dimension==='team'?'팀':'판매구분'),`${plan.dimension==='team'?'팀':'판매구분'} 단위 합계 숫자다. 매출·영업이익 단위는 억원.`);
+    if(cmdRankSlot&&rows.length)fillInsight(cmdRankSlot,`${original} (${period.label})`,insightRows(rows,plan.dimension==='team'?'팀':'판매구분',period),`${plan.dimension==='team'?'팀':'판매구분'} 단위 합계 숫자다. 매출·영업이익 단위는 억원. 직전기간·전년동기·최근 6개월 평균 이익률을 함께 붙였다. 이력이 없으면 -로 표시된다.`);
   }
   function renderClarification(command,question){
     const options=(command.clarification_options||[]).filter(Boolean),buttons=options.map(option=>`<button type="button" class="rag-clarify" data-clarify="${esc(option)}">${esc(option)}</button>`).join('');
