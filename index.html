@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_a9</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_a10</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4203,6 +4203,9 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
 .rag-api-input:focus{border-color:#7567c7}
 .rag-api-test{height:34px;border:0;border-radius:8px;background:#245985;color:#fff;padding:0 11px;font:750 11px var(--font);cursor:pointer;white-space:nowrap}
 .rag-api-state{display:flex;align-items:center;gap:6px;margin-top:7px;color:var(--muted);font-size:10px;line-height:1.4}
+.rag-insight-prompt{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.rag-insight-prompt textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:8px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;font-size:11px;line-height:1.5;resize:vertical}
+.rag-insight-prompt .rag-api-test{margin-top:6px}
 .rag-api-state::before{content:'';width:7px;height:7px;border-radius:50%;background:#9aa8b5;flex:0 0 auto}
 .rag-api-state.ok{color:#247a60}.rag-api-state.ok::before{background:#29a176}
 .rag-api-state.bad{color:#d44b54}.rag-api-state.bad::before{background:#d44b54}
@@ -4277,7 +4280,7 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
 <div class="tkp-natural-drawer" id="tkpNaturalDrawer" role="dialog" aria-label="손익 자연어 검색 패널" aria-modal="false">
   <div class="rag-head"><div class="rag-head-title"><i>⌕</i><div><b>AX_챗봇</b></div></div><button class="rag-toolbar-button" id="ragSettings" type="button">연결 설정</button><button class="rag-close" id="ragClose" type="button" aria-label="닫기">×</button></div>
   <div class="rag-body">
-    <div class="rag-api" id="ragApiPanel"><div class="rag-api-row"><input class="rag-api-input" id="ragApiKey" type="password" autocomplete="off" placeholder="대시보드 접속 암호 입력 (저장하지 않음)"><button class="rag-api-test" id="ragApiTest" type="button">연결 확인</button></div><div class="rag-api-state" id="ragApiState">암호가 없으면 기존 로컬 해석으로 동작합니다.</div></div>
+    <div class="rag-api" id="ragApiPanel"><div class="rag-api-row"><input class="rag-api-input" id="ragApiKey" type="password" autocomplete="off" placeholder="대시보드 접속 암호 입력 (저장하지 않음)"><button class="rag-api-test" id="ragApiTest" type="button">연결 확인</button></div><div class="rag-api-state" id="ragApiState">암호가 없으면 기존 로컬 해석으로 동작합니다.</div><div class="rag-insight-prompt" id="ragInsightPrompt" hidden><div class="rag-api-state">AI 해설 지시문 — 원하는 대로 고쳐 쓰면 이 브라우저에 저장됩니다.</div><textarea id="ragInsightRules" rows="6" spellcheck="false"></textarea><button class="rag-api-test" id="ragInsightReset" type="button">기본 지시문으로</button></div></div>
     <div class="rag-suggestions" id="ragSuggestions" hidden></div>
     <section class="rag-answer" id="ragAnswer"><div class="rag-start"><h3>무엇을 확인할까요?</h3><p>검증된 예시 질문을 선택하거나 아래에 직접 입력하세요.</p><div class="rag-start-grid"></div></div></section>
   </div>
@@ -4529,8 +4532,33 @@ ${prior}`;
         count=0;
         insightLevel=insightLevel?0:INSIGHT_MAX_LEVEL;
         trigger.textContent=insightLevel?baseLabel+' · AI 해설 ON':baseLabel;
+        syncInsightPrompt();
       }
     });
+  })();
+  /* 해설에 쓰는 지시문. 화면에서 직접 고쳐 쓸 수 있고 이 브라우저에만 저장된다. */
+  const INSIGHT_RULES_KEY='ragInsightRules';
+  const INSIGHT_DEFAULT_RULES=`이 숫자만 근거로 2~3문장짜리 짧은 해설을 한국어로 써라.
+규칙:
+- 표에 없는 숫자를 새로 만들거나 직접 계산하지 마라. 주어진 값만 인용하라.
+- 눈에 띄는 변화(급감·급증), 1위·최하위, 이상한 값이 있으면 짚어라.
+- 원인은 단정하지 말고 "~로 보인다" 정도로만 쓰라. 조언·추천은 하지 마라.
+- 인사말·머리말 없이 본문만 써라.`;
+  function insightRules(){
+    let saved='';
+    try{saved=localStorage.getItem(INSIGHT_RULES_KEY)||''}catch(error){saved=''}
+    return saved.trim()||INSIGHT_DEFAULT_RULES;
+  }
+  function syncInsightPrompt(){
+    const box=document.getElementById('ragInsightPrompt');
+    if(box)box.hidden=!insightLevel;
+  }
+  (function(){
+    const field=document.getElementById('ragInsightRules'),reset=document.getElementById('ragInsightReset');
+    if(!field||!reset)return;
+    field.value=insightRules();
+    field.addEventListener('input',()=>{try{localStorage.setItem(INSIGHT_RULES_KEY,field.value)}catch(error){}});
+    reset.addEventListener('click',()=>{try{localStorage.removeItem(INSIGHT_RULES_KEY)}catch(error){}field.value=INSIGHT_DEFAULT_RULES});
   })();
   let insightSeq=0;
   const INSIGHT_LOADING='<span class="rag-insight-loading">AI 해설을 준비하는 중…</span>';
@@ -4546,12 +4574,7 @@ ${prior}`;
 ${note?`설명: ${note}\n`:''}데이터:
 ${rows}
 
-이 숫자만 근거로 2~3문장짜리 짧은 해설을 한국어로 써라.
-규칙:
-- 표에 없는 숫자를 새로 만들거나 직접 계산하지 마라. 주어진 값만 인용하라.
-- 눈에 띄는 변화(급감·급증), 1위·꼴찌, 이상한 값이 있으면 짚어라.
-- 원인은 단정하지 말고 "~로 보인다" 정도로만 쓰라. 조언·추천은 하지 마라.
-- 인사말·머리말 없이 본문만 써라.`;
+${insightRules()}`;
     const response=await fetch(RELAY_URL,{method:'POST',headers:{'Content-Type':'application/json','X-Dash-Pass':pass},body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{thinkingConfig:{thinkingLevel:'low'}}})});
     if(!response.ok)throw new Error('해설 요청 실패 ('+response.status+')');
     const payload=await response.json().catch(()=>({}));
