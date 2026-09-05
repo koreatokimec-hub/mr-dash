@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_c4</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_c5</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4558,9 +4558,12 @@ ${prior}`;
   /* 정리에 쓰는 지시문. 화면에서 직접 고쳐 쓸 수 있고 이 브라우저에만 저장된다. */
   const INSIGHT_RULES_KEY='ragInsightRules';
   const INSIGHT_DEFAULT_RULES=`표를 그대로 읽어 주지 말고, 여러 열을 견줘야 보이는 것만 최대 3개 골라 한 줄씩 써라.
-- 모든 이야기는 이번 기간(가장 최근 시점)이 지금 어떤지가 주인공이다. 과거 값은 이번 기간을 설명하는
-  근거로만 써라. "몇 달 전이 제일 좋았다", "2월이 가장 높았다"처럼 지나간 시점 자체를 주인공으로 삼는
-  서술은 지금 판단에 쓸모가 없으니 쓰지 마라.
+- 결론은 항상 "지금(이번 기간)이 어떤 상태인가"여야 한다. "2월이 가장 좋았다"처럼 지나간 특정 시점을
+  결론으로 삼지 마라 — 그건 지금 판단에 쓸모가 없다.
+- 하지만 거시적 관점(최근 몇 달의 흐름)은 반드시 챙겨라. 최근6개월매출추이(과거→최근 순으로 나열된
+  월별 매출)를 보고 몇 달째 같은 방향인지, 이번 기간이 그 흐름의 연장인지 반전인지를 짚어라.
+  "직전기간 대비 얼마 늘었다" 한 지점 비교로 끝내지 말고, "몇 달째 이어지는 하락 중 이번 기간도
+  하락", "몇 달간의 상승 흐름이 이번 기간 꺾였다"처럼 흐름 속에서 지금을 설명하라.
 - 이런 걸 우선해라: 이번 기간만 튄 것(최근 6개월 평균과 크게 다른 것), 전년 동기와 방향이 반대인 것,
   매출은 늘었는데 이익은 줄어든 것처럼 서로 안 맞는 것, 적자이거나 이익률이 유난히 낮은 것.
 - 이익률이 아니라 영업이익 금액 자체가 크게 늘거나 준 것도 따로 봐라. 이익률은 그대로인데 매출이 커져서
@@ -4665,6 +4668,14 @@ ${insightRules()}`;
     if(!sales&&!profit)return null;
     return {sales,profit,rate:sales?profit/sales*100:0};
   }
+  function insightTrend(series,index,months=6){
+    /* "직전기간 대비"만으로는 이번 달만 튄 건지 몇 달째 이어지는 흐름인지 구분이 안 된다.
+       거시적 관점(추세)을 보게 최근 몇 달 매출을 한 칸에 압축해 같이 넘긴다. */
+    if(index<0)return null;
+    const start=Math.max(0,index-months+1),values=[];
+    for(let i=start;i<=index;i++)values.push(fmt(+((series.sales||[])[i]||0)));
+    return values.length>1?values.join('>'):null;
+  }
   function insightAvgRate(series,index,months=6){
     if(index<0)return null;
     let sales=0,profit=0,n=0;
@@ -4691,16 +4702,17 @@ ${insightRules()}`;
     const head=`${label} | 매출(억) | 영업이익(억) | 이익률(%) | 회사매출비중`;
     const line=row=>`${row.name} | ${fmt(row.sales)} | ${fmt(row.profit)} | ${fmt(row.rate)} | ${shareOf(row)}`;
     if(index<0||!rows.some(row=>insightSeries(row.name)))return head+`\n`+rows.map(line).join(`\n`);
-    return head+` | 직전기간매출 | 직전기간영업이익 | 직전기간이익률 | 전년동기매출 | 전년동기영업이익 | 전년동기이익률 | 최근6개월평균이익률 | 회사매출증감기여도 | 회사영업이익증감기여도\n`
+    return head+` | 직전기간매출 | 직전기간영업이익 | 직전기간이익률 | 전년동기매출 | 전년동기영업이익 | 전년동기이익률 | 최근6개월평균이익률 | 최근6개월매출추이(월별,과거>최근) | 회사매출증감기여도 | 회사영업이익증감기여도\n`
       +rows.map(row=>{
         const series=insightSeries(row.name);
-        if(!series)return line(row)+' | - | - | - | - | - | - | - | - | -';
+        if(!series)return line(row)+' | - | - | - | - | - | - | - | - | - | -';
         const prev=insightPoint(series,index-1,scope),yoy=insightPoint(series,index-12,scope),avg=insightAvgRate(series,index);
         const rowDelta=prev?row.sales-prev.sales:null;
         const contribution=(companyDelta&&rowDelta!=null)?fmt(rowDelta/companyDelta*100)+'%':'-';
         const rowProfitDelta=prev?row.profit-prev.profit:null;
         const profitContribution=(companyProfitDelta&&rowProfitDelta!=null)?fmt(rowProfitDelta/companyProfitDelta*100)+'%':'-';
-        return `${line(row)} | ${cell(prev&&prev.sales)} | ${cell(prev&&prev.profit)} | ${cell(prev&&prev.rate)} | ${cell(yoy&&yoy.sales)} | ${cell(yoy&&yoy.profit)} | ${cell(yoy&&yoy.rate)} | ${cell(avg)} | ${contribution} | ${profitContribution}`;
+        const trend=insightTrend(series,index)||'-';
+        return `${line(row)} | ${cell(prev&&prev.sales)} | ${cell(prev&&prev.profit)} | ${cell(prev&&prev.rate)} | ${cell(yoy&&yoy.sales)} | ${cell(yoy&&yoy.profit)} | ${cell(yoy&&yoy.rate)} | ${cell(avg)} | ${trend} | ${contribution} | ${profitContribution}`;
       }).join(`\n`);
   }
   function insightPeriodRows(rows){
