@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_a10</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_b1</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4278,7 +4278,7 @@ document.getElementById('monthSelect').addEventListener('change',e=>{
 <!-- AX_챗봇: 평소엔 숨김. 왼쪽 하단 "v1" 표시를 2초 안에 7번 클릭하면 나타남(개발자 모드) -->
 <button class="rag-launch" id="ragLaunch" type="button">⌕ AX_챗봇</button>
 <div class="tkp-natural-drawer" id="tkpNaturalDrawer" role="dialog" aria-label="손익 자연어 검색 패널" aria-modal="false">
-  <div class="rag-head"><div class="rag-head-title"><i>⌕</i><div><b>AX_챗봇</b></div></div><button class="rag-toolbar-button" id="ragSettings" type="button">연결 설정</button><button class="rag-close" id="ragClose" type="button" aria-label="닫기">×</button></div>
+  <div class="rag-head"><div class="rag-head-title"><i>⌕</i><div><b>AX_챗봇</b></div></div><button class="rag-toolbar-button" id="ragSettings" type="button" hidden>연결 설정</button><button class="rag-close" id="ragClose" type="button" aria-label="닫기">×</button></div>
   <div class="rag-body">
     <div class="rag-api" id="ragApiPanel"><div class="rag-api-row"><input class="rag-api-input" id="ragApiKey" type="password" autocomplete="off" placeholder="대시보드 접속 암호 입력 (저장하지 않음)"><button class="rag-api-test" id="ragApiTest" type="button">연결 확인</button></div><div class="rag-api-state" id="ragApiState">암호가 없으면 기존 로컬 해석으로 동작합니다.</div><div class="rag-insight-prompt" id="ragInsightPrompt" hidden><div class="rag-api-state">AI 해설 지시문 — 원하는 대로 고쳐 쓰면 이 브라우저에 저장됩니다.</div><textarea id="ragInsightRules" rows="6" spellcheck="false"></textarea><button class="rag-api-test" id="ragInsightReset" type="button">기본 지시문으로</button></div></div>
     <div class="rag-suggestions" id="ragSuggestions" hidden></div>
@@ -4550,8 +4550,13 @@ ${prior}`;
     return saved.trim()||INSIGHT_DEFAULT_RULES;
   }
   function syncInsightPrompt(){
+    /* 암호는 페이지 잠금해제 때 자동으로 들어가므로 일반 사용자는 연결 설정을 볼 일이 없다.
+       혹시 암호가 비어 있으면(자동주입 실패) 챗봇이 먹통이 되지 않게 예외로 열어 준다. */
+    const on=!!insightLevel,noKey=!apiKeyInput.value.trim();
     const box=document.getElementById('ragInsightPrompt');
-    if(box)box.hidden=!insightLevel;
+    if(box)box.hidden=!on;
+    settingsButton.hidden=!(on||noKey);
+    if(!on&&!noKey)apiPanel.classList.remove('open');
   }
   (function(){
     const field=document.getElementById('ragInsightRules'),reset=document.getElementById('ragInsightReset');
@@ -4560,6 +4565,7 @@ ${prior}`;
     field.addEventListener('input',()=>{try{localStorage.setItem(INSIGHT_RULES_KEY,field.value)}catch(error){}});
     reset.addEventListener('click',()=>{try{localStorage.removeItem(INSIGHT_RULES_KEY)}catch(error){}field.value=INSIGHT_DEFAULT_RULES});
   })();
+  syncInsightPrompt();
   let insightSeq=0;
   const INSIGHT_LOADING='<span class="rag-insight-loading">AI 해설을 준비하는 중…</span>';
   function insightSlot(level){
@@ -4884,7 +4890,7 @@ ${insightRules()}`;
     }catch(error){geminiReady=false;const message=friendlyError(error);setApiState(message,'bad');answer.innerHTML=`<h3>AI 질문 처리 실패</h3><p class="rag-answer-summary">${esc(message)}</p>${chips(['API 키·사용 한도·연결 확인'])}<button type="button" class="rag-local-fallback" data-fallback-q="${esc(text)}">이 질문을 로컬 규칙으로 실행</button>`;finishTurn(base,text);
     }finally{stopLoading();geminiBusy=false;sendButton.disabled=false;resetButton.disabled=false;updateBack()}
   }
-  $('ragLaunch').onclick=()=>{panel.classList.add('open');if(!apiKeyInput.value.trim())apiPanel.classList.add('open');setTimeout(()=>apiKeyInput.value.trim()?input.focus():apiKeyInput.focus(),120)};$('ragClose').onclick=()=>panel.classList.remove('open');
+  $('ragLaunch').onclick=()=>{panel.classList.add('open');syncInsightPrompt();if(!apiKeyInput.value.trim())apiPanel.classList.add('open');setTimeout(()=>apiKeyInput.value.trim()?input.focus():apiKeyInput.focus(),120)};$('ragClose').onclick=()=>panel.classList.remove('open');
   apiTest.onclick=testGemini;apiKeyInput.addEventListener('input',()=>{geminiReady=false;setApiState(apiKeyInput.value.trim()?'키 입력됨 · 연결 확인을 눌러 시험하세요.':'키가 없으면 기존 로컬 해석으로 동작합니다.')});
   settingsButton.onclick=()=>{apiPanel.classList.toggle('open');if(apiPanel.classList.contains('open'))setTimeout(()=>apiKeyInput.focus(),0)};
   backButton.onclick=restorePrevious;resetButton.onclick=resetConversation;
