@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_c5</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_c6</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4493,9 +4493,12 @@ ${prior}`;
     if(teamSlot)html+=teamSlot.html;
     html+=`<button type="button" class="rag-goto" data-goto="p2">팀별구분 탭에서 차트로 보기 ↗</button>`;
     answer.innerHTML=html;
+    const lastYearEnd=lastMonthOfYear(String(+current.period.slice(0,4)-1));
+    const lastYearFull=lastYearEnd!=null?{...teamPoint(team,lastYearEnd,'ytd'),period:(+current.period.slice(0,4)-1)+'년 평균(연간 전체)'}:null;
+    const thisYearAvg={...curYtd,period:current.period.slice(0,4)+'년 평균(연초~이번 기간 누계)'};
     if(teamSlot)fillInsight(teamSlot,`${team} 종합 자료 (${current.period} 기준)`,
-      `[이번 달]\n${insightPeriodRows([current])}\n\n[최근 12개월]\n${insightPeriodRows(latest12.slice().reverse())}`,
-      '팀 단위 합계 숫자다. 매출·영업이익 단위는 억원.');
+      `[이번 달]\n${insightPeriodRows([current])}\n\n[비교 기준]\n${insightPeriodRows([thisYearAvg,...(lastYearFull?[lastYearFull]:[])])}\n\n[최근 12개월 — 참고용, 특정 월을 콕 집어 비교하지 말 것]\n${insightPeriodRows(latest12.slice().reverse())}`,
+      '팀 단위 합계 숫자다. 매출·영업이익 단위는 억원. [비교 기준]의 두 값이 "이번 기간이 올해 평균/작년 평균 대비 어떤지"를 판단하는 기준값이다.');
   }
   function teamRows(plan){
     return Object.entries(M.teamSeries||{}).map(([name,series])=>{const sales=valueAt(series,'sales',plan.period),profit=valueAt(series,'profit',plan.period),rate=sales?profit/sales*100:0;let value={sales,profit,rate}[plan.metric],delta=null;
@@ -4564,6 +4567,9 @@ ${prior}`;
   월별 매출)를 보고 몇 달째 같은 방향인지, 이번 기간이 그 흐름의 연장인지 반전인지를 짚어라.
   "직전기간 대비 얼마 늘었다" 한 지점 비교로 끝내지 말고, "몇 달째 이어지는 하락 중 이번 기간도
   하락", "몇 달간의 상승 흐름이 이번 기간 꺾였다"처럼 흐름 속에서 지금을 설명하라.
+- 이익률·실적 수준을 이야기할 때 "역대 최고였던 달", "과거 고점 대비"처럼 한 시점의 극값을 기준으로
+  삼지 마라. 그 달이 왜 특별했는지 알 수 없어 비교가 무의미하다. 대신 [비교 기준]에 있는 "올해 평균"과
+  "작년 평균"에 견줘라. 예: "이번 기간 이익률은 올해 평균보다는 낮지만 작년 평균보다는 여전히 높다."
 - 이런 걸 우선해라: 이번 기간만 튄 것(최근 6개월 평균과 크게 다른 것), 전년 동기와 방향이 반대인 것,
   매출은 늘었는데 이익은 줄어든 것처럼 서로 안 맞는 것, 적자이거나 이익률이 유난히 낮은 것.
 - 이익률이 아니라 영업이익 금액 자체가 크게 늘거나 준 것도 따로 봐라. 이익률은 그대로인데 매출이 커져서
