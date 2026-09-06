@@ -873,7 +873,7 @@ table.tbl td{line-height:1.4}
     <a class="on" data-p="p1"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>전체</a><a data-p="p2"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14.5 14.2h1.8a4.2 4.2 0 0 1 4.2 4.2V20"/></svg></span>팀별구분</a><a data-p="p5"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상세(제품·상품)</a><a data-p="p4"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M7 7h2M7 11h2M7 15h2M15 12h2M15 16h2"/></svg></span>상세(거래처)</a><a data-p="p6"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM8 3v4M16 3v4M4 9h16"/><path d="m8 17 3-3 2 2 4-4"/></svg></span>연도별 실적비교</a>
     <div class="spacer"></div>
   </nav>
-  <div class="dev-mode-trigger" id="devModeTrigger">ver_d7</div>
+  <div class="dev-mode-trigger" id="devModeTrigger">ver_d8</div>
 
   <div class="page-topbar" aria-label="대시보드 제목">
     <div>
@@ -4528,17 +4528,18 @@ ${prior}`;
      표는 지금처럼 로컬에서 정확히 계산해 먼저 그리고, 그 숫자만 AI에 보내
      2~3문장 해설을 덧붙인다. AI는 표에 있는 값만 인용하도록 프롬프트에서 막는다.
 
-     해설을 켜면 화면에 뜬 숫자가 외부(AI)로 나간다. 그래서 기본은 꺼두고,
-     좌하단 버전 표시를 2초 안에 7번 누른 사람만 자기 화면에서 켤 수 있게 했다.
-     (새로고침하면 다시 꺼진다 — 저장하지 않는다)
+     팀·판매구분·회사 전체 단위 해설은 기본으로 누구에게나 보인다(레벨 1).
+     거래처·품목·담당자처럼 개별 이름이 외부(AI)로 나가는 부분과, 지시문을
+     직접 고치는 "연결 설정" 편집 칸은 좌하단 버전 표시를 2초 안에 7번 누른
+     사람만 자기 화면에서 열 수 있다(레벨 2). 새로고침하면 레벨 1로 돌아간다
+     (저장하지 않는다).
 
      insightLevel
-       0 = 해설 안 붙임 (기본값)
-       1 = 팀·판매구분·회사전체 합계 숫자만 외부로 보낸다 (거래처·품목 이름 제외)
-       2 = 거래처·품목·담당자 단위까지 보낸다 (현재 여기까지 열려 있음)
+       1 = 팀·판매구분·회사전체 합계 숫자만 외부로 보낸다 (기본값, 항상 켜짐)
+       2 = 거래처·품목·담당자 단위까지 보낸다 + 지시문 편집 칸 노출 (7클릭으로 진입)
      ------------------------------------------------------------------ */
   const INSIGHT_MAX_LEVEL=2;
-  let insightLevel=0;
+  let insightLevel=1;
   (function(){
     const trigger=document.getElementById('devModeTrigger');
     if(!trigger)return;
@@ -4549,8 +4550,8 @@ ${prior}`;
       timer=setTimeout(()=>{count=0},2000); /* 2초 안에 연달아 7번 눌러야 인정 */
       if(count>=7){
         count=0;
-        insightLevel=insightLevel?0:INSIGHT_MAX_LEVEL;
-        trigger.textContent=insightLevel?baseLabel+' · AI 정리 ON':baseLabel;
+        insightLevel=insightLevel>=INSIGHT_MAX_LEVEL?1:INSIGHT_MAX_LEVEL;
+        trigger.textContent=insightLevel>=INSIGHT_MAX_LEVEL?baseLabel+' · 상세정리 ON':baseLabel;
         syncInsightPrompt();
       }
     });
@@ -4600,8 +4601,10 @@ ${prior}`;
   }
   function syncInsightPrompt(){
     /* 암호는 페이지 잠금해제 때 자동으로 들어가므로 일반 사용자는 연결 설정을 볼 일이 없다.
-       혹시 암호가 비어 있으면(자동주입 실패) 챗봇이 먹통이 되지 않게 예외로 열어 준다. */
-    const on=!!insightLevel,noKey=!apiKeyInput.value.trim();
+       혹시 암호가 비어 있으면(자동주입 실패) 챗봇이 먹통이 되지 않게 예외로 열어 준다.
+       insightLevel은 이제 1(기본, 항상 켜짐)부터 시작하므로, "레벨 2에 도달했는지"로 판정해야
+       패널이 열린다 — truthy 검사(!!insightLevel)를 쓰면 기본값 1도 참이라 늘 열려버린다. */
+    const on=insightLevel>=INSIGHT_MAX_LEVEL,noKey=!apiKeyInput.value.trim();
     const box=document.getElementById('ragInsightPrompt');
     if(box)box.hidden=!on;
     settingsButton.hidden=!(on||noKey);
